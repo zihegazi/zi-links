@@ -2386,13 +2386,14 @@ async function load(){
     try{ localStorage.setItem(ITEMS_CACHE_KEY, JSON.stringify({ id:CONFIG.SHEET_ID, gid:CONFIG.SHEET_GID, items })); }catch{}
     computeDuplicates();
     populateFilters(); applyFilters();
+    refreshTypeChipsIfOpen();
   } catch(e){
     console.error(e);
     // offline / blocked -> show the last copy we saved
     try{
       const c = JSON.parse(localStorage.getItem(ITEMS_CACHE_KEY) || "null");
       if(c && c.id === CONFIG.SHEET_ID && Array.isArray(c.items) && c.items.length){
-        items = c.items; computeDuplicates(); populateFilters(); applyFilters();
+        items = c.items; computeDuplicates(); populateFilters(); applyFilters(); refreshTypeChipsIfOpen();
         setStatus("Offline or sheet unreachable — showing the last saved copy.", true);
         setTimeout(()=>setStatus("", false), 4000);
         return;
@@ -2564,6 +2565,22 @@ window.addEventListener("scroll", () => {
     setTimeout(()=>loadingMore=false, 200);
   }
 });
+
+// ====== Type chips refresh (form opened before the sheet finished loading) ======
+function refreshTypeChipsIfOpen(){
+  if(!document.getElementById("editOverlay").classList.contains("show")) return;
+  const sel = getSelectedTypes();
+  renderTypeChips(sel);
+  const box = document.getElementById("editTypeChips");
+  sel.forEach(t => {
+    if([...box.querySelectorAll(".modal-chip")].some(c => c.dataset.value.toLowerCase() === t.toLowerCase())) return;
+    box.querySelector(".modal-chip-empty")?.remove();
+    const chip = document.createElement("span");
+    chip.className = "modal-chip selected"; chip.textContent = t; chip.dataset.value = t;
+    chip.addEventListener("click", () => chip.classList.toggle("selected"));
+    box.appendChild(chip);
+  });
+}
 
 // ====== Settings ======
 function parseSheetUrl(u){
