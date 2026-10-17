@@ -1,0 +1,3095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Zi_LINK</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpolygon points='98,113 60,92 22,113 22,16 98,16' opacity='.35'/%3E%3Cpolygon fill='%23ff1200' points='98,109 60,88 22,109 22,12 98,12'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #000;
+  --text: #eee;
+  --muted: #aaa;
+  --accent: #999;
+  --btn: #222;
+  --btn-hover: #444;
+}
+
+* { box-sizing:border-box; margin:0; }
+
+body {
+  font-family: calibri, system-ui, Segoe UI, Roboto, Inter, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a { text-decoration:none; color:inherit; }
+
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+  padding:5px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--bg);
+  align-items: center;
+}
+
+.controls label {
+  color: var(--muted);
+  font-size:12px;
+}
+
+.controls input,
+.controls select,
+.controls button,
+.file-btn {
+  padding:6px 8px;
+  border-radius:12px;
+  border:1px solid #333;
+  background: var(--btn);
+  color: var(--text);
+  font-size:13px;
+  cursor:pointer;
+}
+
+.controls input[type=search] {
+  width:min(250px,70vw);
+}
+
+.controls button:hover,
+.controls select:hover,
+.controls input:hover,
+.file-btn:hover {
+  background: var(--btn-hover);
+}
+
+.dropdown-content {
+  display:none;
+  position:absolute;
+  background: var(--bg);
+  min-width:120px;
+  border:1px solid #333;
+  border-radius:10px;
+  padding:6px;
+  z-index:1;
+  max-height:200px;
+  overflow-y:auto;
+}
+
+.dropdown-content label {
+  display:block;
+  font-size:12px;
+  color: var(--text);
+  cursor:pointer;
+}
+
+main {
+  padding:12px;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  background: none;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+  transition: none;
+}
+
+.thumb {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  background: #111;
+  display: block;
+  border-radius: 12px;
+}
+
+.content {
+  padding: 6px;           
+  border: 2px solid #222; /* الإطار الخارجي أبيض */
+  border-radius: 10px;    
+  margin-top: 4px; /* مسافة صغيرة بين الصورة والبيانات تحتها عشان مايبقوش لازقين ببعض */
+}
+
+.title {
+  font-size: 14px;
+  color: var(--accent);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.title:hover {
+  text-decoration: underline;
+  color:#bbb;
+}
+
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.title-row .title {
+  flex: 1;
+}
+
+.vid-icon {
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.5;
+  flex-shrink: 0;
+  filter: grayscale(0.2);
+}
+
+.vid-icon:hover {
+  filter: none;
+  transform: scale(1.1);
+}
+
+.notes {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.title-divider {
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px solid rgba(255,255,255,0.18);
+}
+
+.chip-site {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d5b3ff;
+  background: rgba(213,179,255,0.1);
+  border-color: rgba(213,179,255,0.4);
+}
+
+.chip-site:hover {
+  background: rgba(213,179,255,0.22);
+  color: #ecdcff;
+}
+
+.hashtags {
+  margin-top: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.hashtag-chip {
+  font-size: 11px;
+  color: #7fd0ff;
+  background: rgba(127,208,255,0.08);
+  border: 1px solid rgba(127,208,255,0.35);
+  border-radius: 10px;
+  padding: 1px 7px;
+  cursor: pointer;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.hashtag-chip:hover {
+  background: rgba(127,208,255,0.2);
+  color: #cdeeff;
+}
+
+.chip-type {
+  color: #9dff9d;
+  background: rgba(157,255,157,0.08);
+  border-color: rgba(157,255,157,0.35);
+}
+
+.chip-type:hover {
+  background: rgba(157,255,157,0.2);
+  color: #d8ffd8;
+}
+
+.chip-rate {
+  color: #ffd479;
+  background: rgba(255,212,121,0.08);
+  border-color: rgba(255,212,121,0.35);
+}
+
+.chip-rate:hover {
+  background: rgba(255,212,121,0.2);
+  color: #ffe9c2;
+}
+
+.flag-dup {
+  color: #ff8080;
+  background: rgba(255,128,128,0.1);
+  border: 1px solid rgba(255,128,128,0.4);
+}
+
+.flag-similar {
+  color: #d6a6ff;
+  background: rgba(214,166,255,0.1);
+  border: 1px solid rgba(214,166,255,0.4);
+}
+
+.flag-dead {
+  color: #ff4d4d;
+  background: rgba(255,77,77,0.12);
+  border: 1px solid rgba(255,77,77,0.5);
+  font-weight: bold;
+}
+
+.title.title-dead-link {
+  border-bottom: 2px solid #ff4d4d;
+  padding-bottom: 2px;
+  width: fit-content;
+}
+
+.img-hidden {
+  visibility: hidden;
+}
+
+.thumb-suggest {
+  width: 100%;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  border-radius: 12px;
+}
+
+.thumb-suggest-btn {
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: var(--btn);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.thumb-suggest-btn:hover { background: var(--btn-hover); }
+
+.flag-broken-img {
+  color: #ffb066;
+  background: rgba(255,176,102,0.1);
+  border: 1px solid rgba(255,176,102,0.4);
+}
+
+.flag-broken-img:hover {
+  background: rgba(255,176,102,0.22);
+  color: #ffd9b3;
+}
+
+.flag-no-image {
+  color: #9dc4ff;
+  background: rgba(130,170,255,0.1);
+  border: 1px solid rgba(130,170,255,0.4);
+}
+
+.flag-no-image:hover {
+  background: rgba(130,170,255,0.22);
+  color: #cfe0ff;
+}
+
+.flag-dead-vid {
+  color: #ff70c8;
+  background: rgba(255,112,200,0.1);
+  border: 1px solid rgba(255,112,200,0.5);
+  font-weight: bold;
+}
+
+.vid-icon.vid-icon-dead {
+  filter: none;
+}
+
+.img-alt-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.img-alt-search a {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: var(--btn);
+  color: var(--text);
+}
+
+.img-alt-search a:hover { background: var(--btn-hover); }
+
+.details {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.details a {
+  color: var(--muted);
+}
+
+.details a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.status {
+  text-align:center;
+  color: var(--muted);
+  padding:16px;
+  display:none;
+}
+
+.status.show {
+  display:block;
+}
+
+.file-btn {
+  display:inline-flex;
+  align-items:center;
+}
+.file-btn input {
+  display:none;
+}
+
+.edit-link {
+  cursor:pointer;
+}
+
+.modal-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.65);
+  z-index:2000;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
+
+.modal-overlay.show {
+  display:flex;
+}
+
+.modal-box {
+  background:#111;
+  border:1px solid #333;
+  border-radius:14px;
+  width:min(460px,92vw);
+  max-height:96vh;
+  overflow-y:auto;
+  padding:12px 14px;
+  color:var(--text);
+}
+
+.modal-box h3 {
+  font-size:14px;
+  margin-bottom:8px;
+  color:var(--accent);
+}
+
+.modal-field {
+  margin-bottom:7px;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.edit-row {
+  display:flex;
+  gap:8px;
+}
+
+.edit-row .modal-field {
+  flex:1;
+  min-width:0;
+}
+
+.modal-field label {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.modal-field input,
+.modal-field textarea {
+  padding:6px 8px;
+  border-radius:8px;
+  border:1px solid #333;
+  background:var(--btn);
+  color:var(--text);
+  font-size:13px;
+  font-family:inherit;
+  resize:vertical;
+}
+
+.modal-field textarea {
+  resize:none;
+  overflow-y:auto;
+  scrollbar-width:none;      /* Firefox */
+  -ms-overflow-style:none;   /* Edge/IE القديمة */
+}
+.modal-field textarea::-webkit-scrollbar { display:none; width:0; height:0; } /* Chrome/Safari/Edge الجديدة */
+
+.modal-chip-picker {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  padding:4px 2px;
+}
+
+.modal-chip-add-row {
+  display:flex;
+  gap:6px;
+  margin-top:2px;
+}
+
+.modal-chip-add-row input {
+  flex:1;
+  padding:5px 8px;
+  border-radius:8px;
+  border:1px solid #333;
+  background:var(--btn);
+  color:var(--text);
+  font-size:12px;
+}
+
+.modal-chip-add-row button {
+  padding:5px 10px;
+  border-radius:8px;
+  border:1px solid #444;
+  background:var(--btn);
+  color:var(--text);
+  font-size:12px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.modal-chip-add-row button:hover {
+  border-color:#7fd0ff;
+}
+
+.modal-chip {
+  font-size:12px;
+  padding:3px 10px;
+  border-radius:12px;
+  border:1px solid #444;
+  background:var(--btn);
+  color:var(--muted);
+  cursor:pointer;
+  user-select:none;
+}
+
+.modal-chip:hover {
+  border-color:#7fd0ff;
+}
+
+.modal-chip.selected {
+  background:rgba(157,255,157,0.15);
+  border-color:#9dff9d;
+  color:#d8ffd8;
+  font-weight:bold;
+}
+
+.modal-chip-empty {
+  font-size:12px;
+  color:var(--muted);
+  font-style:italic;
+}
+
+.modal-star-picker {
+  display:flex;
+  gap:4px;
+  font-size:22px;
+  line-height:1;
+}
+
+.popup-radio-list {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.popup-radio-list label {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  color:var(--text);
+  cursor:pointer;
+}
+
+#filterOverlay .dropdown-content {
+  display:block;
+  position:static;
+  background:transparent;
+  border:none;
+  padding:0;
+  max-height:none;
+  overflow:visible;
+  min-width:0;
+}
+
+.modal-star {
+  cursor:pointer;
+  color:#444;
+  transition:color .1s;
+}
+
+.modal-star.filled {
+  color:#ffd479;
+}
+
+.modal-star:hover {
+  color:#ffe9c2;
+}
+
+.modal-actions {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+}
+
+.modal-actions-right {
+  display:flex;
+  gap:8px;
+  margin-left:auto;
+}
+
+.modal-columns {
+  display:flex;
+  align-items:flex-start;
+  gap:0;
+}
+
+.modal-columns .modal-field {
+  flex:0 0 auto;
+  padding:0 18px;
+}
+
+.modal-columns .modal-field:first-child {
+  padding-left:0;
+}
+
+.modal-columns .modal-field:last-child {
+  padding-right:0;
+}
+
+.modal-columns .modal-field + .modal-field {
+  border-left:1px solid #2a2a2a;
+}
+
+.modal-columns .modal-field label {
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  font-weight:600;
+  color:var(--muted);
+  display:block;
+  padding-bottom:6px;
+  margin-bottom:6px;
+  border-bottom:1px solid #2a2a2a;
+}
+
+.modal-columns .dropdown-content label,
+.modal-columns .popup-radio-list label {
+  padding:4px 6px;
+  margin:0 -6px;
+  border-radius:6px;
+  white-space:nowrap;
+}
+
+.modal-columns .dropdown-content label:hover,
+.modal-columns .popup-radio-list label:hover {
+  background:rgba(255,255,255,0.06);
+}
+
+/* أسامي العناصر تتحاذى شمال والأرقام كلها تتحاذى يمين، مع مسافة ثابتة بينهم */
+#filterOverlay .dropdown-content label {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+
+#filterOverlay .dropdown-content label .filter-opt-name {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+
+#filterOverlay .dropdown-content label .filter-opt-count {
+  margin-left:auto;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+#filterOverlay .modal-box {
+  width:fit-content;
+  min-width:260px;
+  max-width:94vw;
+}
+
+#filterOverlay .modal-columns {
+  flex-wrap: wrap;
+}
+
+#statsOverlay .modal-box {
+  width: fit-content;
+  max-width: 95vw;
+  max-height: 90vh;
+}
+
+.stats-table-wrap {
+  overflow-x: auto;
+  margin-top: 6px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.stats-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.stats-table th,
+.stats-table td {
+  border: 1px solid #333;
+  padding: 4px 9px;
+  text-align: center;
+}
+
+.stats-table thead th {
+  background: #1a1a1a;
+  color: var(--accent);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.stats-table thead th:not(.stats-row-label) {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  height: auto;
+  vertical-align: center;
+  text-align: left;
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+
+.stats-table td.stats-row-label,
+.stats-table th.stats-row-label {
+  font-weight: bold;
+  color: var(--accent);
+  background: #161616;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: center;
+}
+
+.stats-table tr.stats-total-row td {
+  font-weight: bold;
+  background: #1a1a1a;
+}
+
+.stats-table td.stats-total-col,
+.stats-table th.stats-total-col {
+  font-weight: bold;
+  background: #1a1a1a;
+}
+
+.stats-table td.stats-zero {
+  color: #444;
+}
+
+.stats-table td.stats-gap,
+.stats-table th.stats-gap {
+  border: none;
+  background: transparent;
+  padding: 0;
+  width: 16px;
+}
+
+.stats-table .stats-clickable {
+  cursor: pointer;
+}
+.stats-table .stats-clickable:hover {
+  background: rgba(255,255,255,0.14);
+  color: var(--accent);
+}
+
+.clear-btn {
+  background:transparent;
+  border:1px solid #555;
+  color:var(--muted);
+}
+
+.clear-btn:hover {
+  border-color:#ff8080;
+  color:#ff8080;
+}
+
+.modal-actions button {
+  padding:7px 14px;
+  border-radius:10px;
+  border:1px solid #333;
+  background:var(--btn);
+  color:var(--text);
+  font-size:13px;
+  cursor:pointer;
+}
+
+.modal-actions button:hover {
+  background:var(--btn-hover);
+}
+
+.modal-actions .save-btn {
+  background:#2a6f3f;
+  border-color:#2a6f3f;
+}
+
+.modal-actions .save-btn:hover {
+  background:#348a4e;
+}
+
+.modal-msg {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:8px;
+  min-height:16px;
+}
+#reloadBtn.spinning{ animation: zi-spin 0.8s linear infinite; }
+@keyframes zi-spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+.bm-link{ padding:6px 12px; border-radius:12px; border:1px dashed #7fd0ff; color:#7fd0ff; font-size:13px; cursor:grab; }
+.modal-box.wide{ width:min(680px,94vw); }
+.pp{ margin-bottom:8px; }
+.pp-tabs{ display:flex; gap:6px; margin-bottom:6px; }
+.pp-tabs button{ padding:4px 10px; border-radius:10px; border:1px solid #333; background:var(--btn); color:var(--muted); font-size:12px; cursor:pointer; }
+.pp-tabs button.on{ color:#d8ffd8; border-color:#9dff9d; }
+.pp-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; max-height:200px; overflow-y:auto; border:1px solid #222; border-radius:8px; padding:4px; }
+.pp-grid .t{ position:relative; aspect-ratio:1/1; border:2px solid #333; border-radius:8px; overflow:hidden; cursor:pointer; background:#1a1a1a; }
+.pp-grid .t img{ width:100%; height:100%; object-fit:cover; display:block; }
+.pp-grid .t.sel{ border-color:#9dff9d; }
+.pp-grid .ico{ display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; font-size:22px; text-align:center; padding:4px; }
+.pp-grid .ico small{ font-size:9px; color:var(--muted); word-break:break-all; }
+.pp-text{ max-height:200px; overflow-y:auto; border:1px solid #222; border-radius:8px; }
+.pp-text .x{ font-size:12.5px; line-height:1.4; padding:4px 6px; border-bottom:1px solid #262626; cursor:pointer; }
+.pp-text .x:hover{ background:rgba(127,208,255,.08); }
+.pp-text .x.sel{ background:rgba(157,255,157,.10); }
+.pp-empty{ grid-column:1/-1; font-size:12px; color:var(--muted); text-align:center; padding:8px; }
+.set-hint{ font-size:11px; color:var(--muted); line-height:1.5; }
+#setSheetParsed{ color:#9dff9d; }
+#setSheetParsed.bad{ color:#ff8080; }
+#settingsBtn.needs-setup{ animation: zi-pulse 1.2s ease-in-out infinite; }
+@keyframes zi-pulse{ 50%{ box-shadow:0 0 0 4px rgba(255,212,121,.45); } }
+</style>
+</head>
+<body>
+
+<div class="controls">
+<button id="homeButton" title="Scroll to top">◮</button>
+<button id="reloadBtn" title="Reload data from the sheet without refreshing the page">⟳</button>
+<button id="addCardBtn" title="Add a new card to the sheet">➕</button>
+<button id="settingsBtn" title="Settings">⚙️</button>
+
+
+
+  <label>View</label>
+  <select id="colsSelect">
+    <option>1</option><option>2</option><option>3</option>
+    <option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+  </select>
+
+  <select id="sortSelect" style="display:none">
+    <option value="none">None</option>
+    <option value="title">Title</option>
+    <option value="link">Link</option>
+    <option value="rate">Rate</option>
+    <option value="type">Type</option>
+    <option value="random">Random</option>
+  </select>
+  <select id="orderSelect" style="display:none">
+    <option value="asc">Ascend</option>
+    <option value="desc">Descend</option>
+  </select>
+
+  <button id="filterBtn">Filter</button>
+  <button id="statsBtn">Stats</button>
+    <label class="file-btn">
+    Load File
+    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json"/>
+  </label>
+  <button id="resetAllBtn" title="Clears the sort, filter, and search, and goes back to the default view">➖</button>
+
+  <input id="search" type="search" placeholder="Search: cat dog | puppy -tiktok "cute cat""/>
+  <span id="count" style="color:var(--muted); font-size:13px; padding-left:6px;">0</span>
+
+
+</div>
+
+<main>
+  <div id="status" class="status">Loading…</div>
+  <div id="grid" class="grid"></div>
+</main>
+
+<div id="editOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="editModalTitle">Edit Card Data</h3>
+    <div id="pagePicker" class="pp" style="display:none">
+      <div class="pp-tabs">
+        <button type="button" data-t="Img" class="on">Images <span id="ppImgN"></span></button>
+        <button type="button" data-t="Vid">Videos <span id="ppVidN"></span></button>
+        <button type="button" data-t="Txt">Text <span id="ppTxtN"></span></button>
+      </div>
+      <div id="ppImg" class="pp-grid"></div>
+      <div id="ppVid" class="pp-grid" style="display:none"></div>
+      <div id="ppTxt" class="pp-text" style="display:none"></div>
+    </div>
+    <div class="modal-field">
+      <label>Title</label>
+      <textarea id="editTitle" rows="1"></textarea>
+    </div>
+    <div class="modal-field">
+      <label>Link</label>
+      <input id="editLink" type="text"/>
+    </div>
+    <div class="modal-field">
+      <label>Image</label>
+      <input id="editImage" type="text"/>
+      <div class="img-alt-search" id="editImageAltSearch"></div>
+    </div>
+    <div class="modal-field">
+      <label>Vid</label>
+      <input id="editVid" type="text"/>
+    </div>
+    <div class="modal-field">
+      <label>Note</label>
+      <textarea id="editNote" rows="1"></textarea>
+    </div>
+	
+    <div class="modal-field">
+      <label>Type (pick any that apply)</label>
+      <div class="modal-chip-add-row">
+        <input type="text" id="editTypeNewInput" placeholder="Add new type…"/>
+        <button type="button" id="editTypeAddBtn">+ Add</button>
+      </div> 
+	  <div id="editTypeChips" class="modal-chip-picker"></div>
+    </div>
+	
+    <div class="modal-field">
+      <label>Rate</label>
+      <div id="editRateStars" class="modal-star-picker"></div>
+    </div>
+
+    <div class="modal-msg" id="editMsg"></div>
+    <div class="modal-actions">
+      <button id="editClearBtn" type="button" class="clear-btn">Clear</button>
+      <div class="modal-actions-right">
+        <button id="editCancelBtn">Cancel</button>
+        <button id="editSaveBtn" class="save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="filterOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Filter &amp; Sort</h3>
+    <div class="modal-columns">
+      <div class="modal-field">
+        <label>Sort by</label>
+        <div class="popup-radio-list">
+          <label><input type="radio" name="sortFieldRadio" value="none"> None</label>
+          <label><input type="radio" name="sortFieldRadio" value="title"> Title</label>
+          <label><input type="radio" name="sortFieldRadio" value="link"> Link</label>
+          <label><input type="radio" name="sortFieldRadio" value="rate"> Rate</label>
+          <label><input type="radio" name="sortFieldRadio" value="type"> Type</label>
+          <label><input type="radio" name="sortFieldRadio" value="random"> Random</label>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Order</label>
+        <div class="popup-radio-list">
+          <label><input type="radio" name="sortOrderRadio" value="asc"> Ascend</label>
+          <label><input type="radio" name="sortOrderRadio" value="desc"> Descend</label>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Rate</label>
+        <div class="dropdown-content" id="rateCheckboxes"></div>
+      </div>
+      <div class="modal-field">
+        <label>Type</label>
+        <div class="dropdown-content" id="typeCheckboxes"></div>
+      </div>
+      <div class="modal-field">
+        <label>Flags</label>
+        <div class="dropdown-content" id="flagsCheckboxes">
+          <label><span class="filter-opt-name"><input type="checkbox" value="duplicate"> ⚠️ Duplicate</span><span class="filter-opt-count flag-count" data-flag="duplicate"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="similar"> ߔΠSimilar</span><span class="filter-opt-count flag-count" data-flag="similar"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="dead"> ߒ Dead Link</span><span class="filter-opt-count flag-count" data-flag="dead"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="deadvid"> 🎥 Dead Video</span><span class="filter-opt-count flag-count" data-flag="deadvid"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="brokenimg"> 🖼️ Broken Image</span><span class="filter-opt-count flag-count" data-flag="brokenimg"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="noimage"> 🖼️ No Image</span><span class="filter-opt-count flag-count" data-flag="noimage"></span></label>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Tags</label>
+        <div class="dropdown-content" id="tagCheckboxes"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="checkAllBtn" title="Checks every link, image and video and flags the ones that are dead or broken">🔗 Check Links &amp; Media</button>
+      <div class="modal-actions-right">
+        <button id="filterCancelBtn">Cancel</button>
+        <button id="filterOkBtn" class="save-btn">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="statsOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Statistics</h3>
+    <div class="stats-table-wrap">
+      <table class="stats-table" id="statsTable"></table>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-right">
+        <button id="statsCloseBtn" class="save-btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="settingsOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Settings</h3>
+    <div class="modal-field">
+      <label>Google Sheet link</label>
+      <input id="setSheetUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/…/edit#gid=…" autocomplete="off"/>
+      <div id="setSheetParsed" class="set-hint" dir="rtl"></div>
+      <div class="set-hint" dir="rtl">الشيت لازم يكون Share → Anyone with the link → Viewer عشان القراءة تشتغل.</div>
+    </div>
+    <div class="modal-field">
+      <label>Add/Edit endpoint (Apps Script Web App link)</label>
+      <input id="setEndpoint" type="text" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"/>
+      <div class="set-hint" dir="rtl">نفس لينك الإضافة (EDIT_ENDPOINT). سيبه فاضي لو عايز عرض بس.</div>
+    </div>
+    <div class="modal-field">
+      <label>Edit password (optional)</label>
+      <input id="setPassword" type="password" placeholder="(none)" autocomplete="off"/>
+    </div>
+    <details class="modal-field">
+      <summary class="set-hint" style="cursor:pointer">Advanced</summary>
+      <label style="display:block;margin-top:6px">Sheet tab name</label>
+      <input id="setSheetName" type="text" placeholder="List" autocomplete="off"/>
+      <div class="set-hint" dir="rtl">الـ Apps Script بتاعك بيدور على التاب بالاسم (getSheetByName) فلازم يطابق اسم التاب. سيبه List.</div>
+    </details>
+    <div class="modal-field">
+      <label>Add from any page (Chrome desktop)</label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a id="bmLink" href="#" draggable="true" class="bm-link">➕ Zi_LINK Add</a>
+        <button type="button" id="bmCopyBtn">Copy code</button>
+      </div>
+      <div class="set-hint" dir="rtl">اسحب الزرار ده لشريط الـ Bookmarks مرة واحدة. بعدها في أي صفحة دوس عليه: بيفتح فورم الإضافة بعنوان ولينك الصفحة وصورها وفيديوهاتها ونصوصها تختار منها، زي الإضافة. (مواقع قليلة بتمنع الـ bookmarklets، زي GitHub، ومش هتشتغل فيها.)</div>
+    </div>
+    <div class="modal-msg" id="setMsg"></div>
+    <div class="modal-actions">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="setTestBtn" type="button">Test</button>
+        <button id="setShareBtn" type="button" title="Copies a link that applies these settings on another device">Copy setup link</button>
+        <button id="setResetBtn" type="button" class="clear-btn">Reset</button>
+      </div>
+      <div class="modal-actions-right">
+        <button id="setCancelBtn" type="button">Cancel</button>
+        <button id="setSaveBtn" type="button" class="save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ⚙️  الإعدادات — عدّل بياناتك هنا بس، مفيش داعي تدور جوه الكود
+   ══════════════════════════════════════════════════════════════════ */
+const SETTINGS_KEY = "ziLinkSettings";
+const SETTINGS_DEFAULTS = { SHEET_ID:"", SHEET_NAME:"List", SHEET_GID:"", EDIT_ENDPOINT:"", EDIT_PASSWORD:"" };
+function loadSettings(){
+  try{ return Object.assign({}, SETTINGS_DEFAULTS, JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}")); }
+  catch{ return Object.assign({}, SETTINGS_DEFAULTS); }
+}
+function persistSettings(s){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+// setup link: #cfg=<base64 json> — بيتطبق مرة واحدة ويتمسح من الـ URL
+(function applyHashConfig(){
+  const m = location.hash.match(/^#cfg=(.+)$/);
+  if(!m) return;
+  try{
+    const obj = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
+    const clean = {};
+    Object.keys(SETTINGS_DEFAULTS).forEach(k => { if(typeof obj[k] === "string") clean[k] = obj[k]; });
+    persistSettings(Object.assign({}, SETTINGS_DEFAULTS, clean));
+  }catch(e){ console.error("Bad setup link", e); }
+  history.replaceState(null, "", location.pathname + location.search);
+})();
+
+const CONFIG = Object.assign({
+  PAGE_SIZE: 40,
+  SIMILARITY_THRESHOLD: 0.5,
+  SIMILARITY_MAX_ITEMS: 4000,
+  LINK_CHECK_CONCURRENCY: 6,
+  LINK_CHECK_TIMEOUT_MS: 6000,
+  LINK_CHECK_FRESH_MS: 1000*60*60*24*7,
+  IMAGE_CHECK_CONCURRENCY: 6,
+  IMAGE_CHECK_TIMEOUT_MS: 8000,
+  IMAGE_CHECK_FRESH_MS: 1000*60*60*24*7,
+  VIDEO_CHECK_CONCURRENCY: 6,
+  VIDEO_CHECK_TIMEOUT_MS: 6000,
+  VIDEO_CHECK_FRESH_MS: 1000*60*60*24*7
+}, loadSettings());
+/* ══════════════════════════════════════════════════════════════════ */
+
+// وظيفة زر Home Button
+document.getElementById('homeButton').onclick = e => { 
+  e.preventDefault(); 
+  window.scrollTo({top:0,behavior:'smooth'}); 
+};
+
+const gridEl=document.getElementById("grid"), statusEl=document.getElementById("status"),
+      searchEl=document.getElementById("search"), colsSelectEl=document.getElementById("colsSelect"),
+      sortSelectEl=document.getElementById("sortSelect"), orderSelectEl=document.getElementById("orderSelect");
+
+let items=[];
+let editUnlocked = false;
+
+// خرائط اكتشاف التكرار/التشابه/الروابط الميتة
+let duplicateLinkMap = new Map();   // item -> [عناصر تانية بنفس اللينك]
+let similarTitleMap  = new Map();   // item -> [{item, score}]
+let linkStatusCache  = {};          // normalizedLink -> {status:'ok'|'dead', ts}
+try{ linkStatusCache = JSON.parse(localStorage.getItem("ziLinkStatusCache") || "{}"); }catch{ linkStatusCache = {}; }
+let imageStatusCache = {};          // normalizedImageUrl -> {status:'ok'|'dead', ts}
+try{ imageStatusCache = JSON.parse(localStorage.getItem("ziImageStatusCache") || "{}"); }catch{ imageStatusCache = {}; }
+let videoStatusCache = {};          // normalizedVidLink -> {status:'ok'|'dead', ts}
+try{ videoStatusCache = JSON.parse(localStorage.getItem("ziVideoStatusCache") || "{}"); }catch{ videoStatusCache = {}; }
+
+let page = 1;
+let filteredCache = [];
+let loadingMore = false;
+
+function setStatus(msg, show=true){ statusEl.textContent=msg; statusEl.className="status"+(show?" show":""); }
+
+function updateGridCols(cols){
+  const screenWidth = window.innerWidth;
+  const colWidth = screenWidth / cols;
+  gridEl.style.gridTemplateColumns = `repeat(${cols}, minmax(0, ${colWidth}px))`;
+}
+colsSelectEl.onchange = () => updateGridCols(colsSelectEl.value);
+window.onresize = () => updateGridCols(colsSelectEl.value);
+updateGridCols(colsSelectEl.value);
+
+function toEmbedUrl(url){
+  if(!url) return "";
+  try {
+    let u=new URL(url);
+    if(u.hostname.includes("youtu.be")) 
+      return "https://www.youtube.com/embed/"+u.pathname.slice(1);
+    if(u.hostname.includes("youtube.com")){
+      let id=u.searchParams.get("v"); 
+      if(id) return "https://www.youtube.com/embed/"+id;
+    }
+    if(u.hostname.includes("facebook.com")){
+      return "https://www.facebook.com/plugins/video.php?href="+encodeURIComponent(url)+"&show_text=0&width=560";
+    }
+    if(u.hostname.includes("tiktok.com")){
+      let parts=u.pathname.split("/");
+      let vid=parts.find(p=>/^\d+$/.test(p)); 
+      if(vid) return "https://www.tiktok.com/embed/v2/"+vid;
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
+
+// عمود Type ممكن يحتوي أكتر من قيمة مفصولة بفاصلة: "funny, cat, meme"
+function splitValues(str){
+  return (str||"").split(",").map(s=>s.trim()).filter(Boolean);
+}
+
+// إزالة التكرار مع تجاهل الفرق بين الحروف الكابيتال والسمول (Cat = cat = CAT)
+function uniqueCI(arr){
+  const map = new Map();
+  arr.forEach(v=>{
+    const k=v.toLowerCase();
+    if(!map.has(k)) map.set(k, v);
+  });
+  return [...map.values()].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
+}
+
+// تطبيع اللينك عشان مقارنة التكرار تتجاهل http/https, www, والسلاش الأخير
+function normalizeLink(link){
+  let s=(link||"").trim().toLowerCase();
+  if(!s) return "";
+  s = s.replace(/^https?:\/\//,"").replace(/^www\./,"").replace(/\/+$/,"");
+  return s;
+}
+
+// استخراج اسم الموقع (الدومين) من اللينك، من غير www ومن غير المسار
+function getSiteName(link){
+  const s=(link||"").trim();
+  if(!s) return "";
+  try{
+    const u = new URL(/^https?:\/\//i.test(s) ? s : "https://"+s);
+    return u.hostname.replace(/^www\./i,"");
+  }catch(e){
+    return "";
+  }
+}
+
+// تنظيف العنوان قبل مقارنة التشابه (شيل الأقواس والكوتيشن والمسافات الزيادة)
+function normalizeTitleForCompare(title){
+  return (title||"").toLowerCase().replace(/[#()\[\]{}<>"“”«»]/g," ").replace(/\s+/g," ").trim();
+}
+
+// نسبة تشابه نصين باستخدام Dice's Coefficient على bigrams (شغال كويس مع عربي وإنجليزي)
+function diceSimilarity(a, b){
+  if(!a || !b) return 0;
+  if(a===b) return 1;
+  const bigrams = s => { const g=[]; const t=s.replace(/\s+/g,""); for(let i=0;i<t.length-1;i++) g.push(t.slice(i,i+2)); return g; };
+  const ga=bigrams(a), gb=bigrams(b);
+  if(!ga.length || !gb.length) return 0;
+  const count=new Map();
+  ga.forEach(g=>count.set(g,(count.get(g)||0)+1));
+  let matches=0;
+  gb.forEach(g=>{ const c=count.get(g); if(c>0){ matches++; count.set(g,c-1); } });
+  return (2*matches)/(ga.length+gb.length);
+}
+
+// بيتحسب مرة واحدة بعد كل تحميل بيانات جديد
+function computeDuplicates(){
+  duplicateLinkMap = new Map();
+  similarTitleMap  = new Map();
+
+  // 1) تكرار اللينك بالظبط
+  const byLink = new Map();
+  items.forEach(it=>{
+    const key = normalizeLink(it.link);
+    if(!key) return;
+    if(!byLink.has(key)) byLink.set(key, []);
+    byLink.get(key).push(it);
+  });
+  byLink.forEach(group=>{
+    if(group.length>1) group.forEach(it=> duplicateLinkMap.set(it, group.filter(x=>x!==it)));
+  });
+
+  // 2) تشابه العناوين (نص) - بدل مقارنة كل عنصر بكل عنصر (O(n²) وده اللي كان بيعلّق المتصفح على المكتبات الكبيرة)
+  //    بنبني فهرس عكسي (inverted index): كل bigram -> مين العناصر اللي فيها الـ bigram ده.
+  //    وبعدين كل عنصر بنقارنه بس بالعناصر اللي بتشترك معاه في bigram واحد على الأقل،
+  //    لأن أي اتنين مالهمش ولا bigram مشترك مستحيل يبقى بينهم أي نسبة تشابه أصلاً - يعني مفيش خسارة في الدقة.
+  if(items.length > CONFIG.SIMILARITY_MAX_ITEMS) return; // تجنب البطء لو المكتبة ضخمة جدًا
+
+  const norm = items.map(it=>normalizeTitleForCompare(it.title));
+  const bigramsOf = s => { const g=[]; const t=s.replace(/\s+/g,""); for(let i=0;i<t.length-1;i++) g.push(t.slice(i,i+2)); return g; };
+  const bigramSets = norm.map(s=> s ? [...new Set(bigramsOf(s))] : []);
+
+  // فهرس: bigram -> [indexes العناصر اللي فيها الـ bigram ده]
+  const invIndex = new Map();
+  bigramSets.forEach((bigrams, idx)=>{
+    bigrams.forEach(g=>{
+      if(!invIndex.has(g)) invIndex.set(g, []);
+      invIndex.get(g).push(idx);
+    });
+  });
+
+  for(let i=0;i<items.length;i++){
+    if(!norm[i]) continue;
+    // اجمع كل العناصر اللي بتشترك مع i في bigram واحد على الأقل (مرشحين حقيقيين فقط)
+    const candidates = new Set();
+    bigramSets[i].forEach(g=>{
+      const list = invIndex.get(g);
+      if(list) list.forEach(j=>{ if(j>i) candidates.add(j); });
+    });
+    candidates.forEach(j=>{
+      const a=items[i], b=items[j];
+      if(duplicateLinkMap.get(a)?.includes(b)) return; // مكرر لينك أصلاً، مش محتاجين نكررها كتشابه
+      const score = diceSimilarity(norm[i], norm[j]);
+      if(score >= CONFIG.SIMILARITY_THRESHOLD){
+        if(!similarTitleMap.has(a)) similarTitleMap.set(a, []);
+        if(!similarTitleMap.has(b)) similarTitleMap.set(b, []);
+        similarTitleMap.get(a).push({item:b, score});
+        similarTitleMap.get(b).push({item:a, score});
+      }
+    });
+  }
+}
+
+// نفس منطق استخراج الهاشتاجات/الأقواس من العنوان المستخدم في الكروت، بس كدالة قابلة لإعادة الاستخدام في الفلتر
+function getItemTags(it){
+  // بنجمع العنوان والنوت مع بعض عشان الهاشتاجات/الأقواس تتاخد من الاتنين
+  const rawText = (it.title || "") + " " + (it.note || "");
+  const hashtags = [...rawText.matchAll(/#(\S+)/g)].map(m => m[1]);
+  const bracketRe = /\(([^()]+)\)|\[([^\[\]]+)\]|\{([^{}]+)\}|<([^<>]+)>|"([^"]+)"|“([^”]+)”|«([^»]+)»/g;
+  const bracketed = [...rawText.matchAll(bracketRe)]
+    .flatMap(m => {
+      const raw = (m.slice(1).find(g => g !== undefined) || "").trim();
+      if (!raw) return [];
+      if (raw.includes(",")) return splitValues(raw);
+      return raw.split(/\s+/).filter(Boolean).length <= 3 ? [raw] : [];
+    });
+  return uniqueCI([...hashtags, ...bracketed]);
+}
+
+function populateFilters(){
+  // بنحفظ القيم المختارة حاليًا (Rate/Type/Tag) قبل ما نمسح الـ checkboxes ونعيد بنائها،
+  // عشان أي فلتر شغال ميتفكّش بسبب تعديل كارت أو إضافة واحد جديد
+  const keepChecked = (containerId) =>
+    new Set([...document.querySelectorAll(`#${containerId} input:checked`)].map(i=>i.value.toLowerCase()));
+  const checkedRates = keepChecked("rateCheckboxes");
+  const checkedTypes = keepChecked("typeCheckboxes");
+  const checkedTags   = keepChecked("tagCheckboxes");
+
+  const rates=uniqueCI(items.flatMap(i=>splitValues(i.rate)));
+  const types=uniqueCI(items.flatMap(i=>splitValues(i.type)));
+  const rateC=document.getElementById("rateCheckboxes"), typeC=document.getElementById("typeCheckboxes");
+  rateC.innerHTML=""; typeC.innerHTML="";
+  rates.forEach(r=>{
+    const count = items.filter(i=>splitValues(i.rate).some(x=>x.toLowerCase()===r.toLowerCase())).length;
+    let l=document.createElement("label");
+    l.innerHTML=`<span class="filter-opt-name"><input type="checkbox" value="${r}"${checkedRates.has(r.toLowerCase())?" checked":""}> ${r}</span><span class="filter-opt-count">(${count})</span>`;
+    rateC.appendChild(l);
+  });
+  types.forEach(t=>{
+    const count = items.filter(i=>splitValues(i.type).some(x=>x.toLowerCase()===t.toLowerCase())).length;
+    let l=document.createElement("label");
+    l.innerHTML=`<span class="filter-opt-name"><input type="checkbox" value="${t}"${checkedTypes.has(t.toLowerCase())?" checked":""}> ${t}</span><span class="filter-opt-count">(${count})</span>`;
+    typeC.appendChild(l);
+  });
+
+  // أكتر 10 هاشتاجات/تاجات (المستخرجة من العنوان) تكرارًا، بنفس شكل باقي الأعمدة
+  const tagCounts = new Map();
+  items.forEach(it=>{
+    getItemTags(it).forEach(t=>{
+      const key = t.toLowerCase();
+      if(!tagCounts.has(key)) tagCounts.set(key, { label:t, count:0 });
+      tagCounts.get(key).count++;
+    });
+  });
+  const topTags = [...tagCounts.values()].sort((a,b)=>b.count-a.count).slice(0,15);
+  const tagC = document.getElementById("tagCheckboxes");
+  tagC.innerHTML = "";
+  topTags.forEach(({label,count})=>{
+    let l=document.createElement("label");
+    l.innerHTML=`<span class="filter-opt-name"><input type="checkbox" value="${label}"${checkedTags.has(label.toLowerCase())?" checked":""}> #${label}</span><span class="filter-opt-count">(${count})</span>`;
+    tagC.appendChild(l);
+  });
+
+  // عدادات Flags (Duplicate / Similar / Dead) — بتتحدث بس، من غير ما نمسح الـ checkboxes عشان الاختيار الحالي يفضل زي ما هو
+  const deadCount = items.filter(it=>{
+    const k = normalizeLink(it.link);
+    return k && linkStatusCache[k]?.status === "dead";
+  }).length;
+  const brokenImgCount = items.filter(it=>{
+    const k = normalizeLink(it.image);
+    return k && imageStatusCache[k]?.status === "dead";
+  }).length;
+  const deadVidCount = items.filter(it=>{
+    const k = normalizeLink(it.vid);
+    return k && videoStatusCache[k]?.status === "dead";
+  }).length;
+  const noImageCount = items.filter(it=>!it.image && !it.vid).length;
+  const flagCounts = { duplicate: duplicateLinkMap.size, similar: similarTitleMap.size, dead: deadCount, deadvid: deadVidCount, brokenimg: brokenImgCount, noimage: noImageCount };
+  document.querySelectorAll("#flagsCheckboxes .flag-count").forEach(span=>{
+    span.textContent = `(${flagCounts[span.dataset.flag] || 0})`;
+  });
+}
+
+// بيبني بديل بصري لكارت مالوش صورة أصلاً (ولا فيديو)، مع زرار بيفتح بوباب
+// التعديل عشان تدور على صورة وتحطها
+function buildMissingImagePlaceholder(it){
+  const wrap=document.createElement("div");
+  wrap.className="thumb thumb-suggest";
+  const fixBtn=document.createElement("button");
+  fixBtn.type="button";
+  fixBtn.className="thumb-suggest-btn";
+  fixBtn.textContent="Suggest image";
+  fixBtn.addEventListener("click",(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    openEditModal(it);
+  });
+  wrap.append(fixBtn);
+  return wrap;
+}
+
+// بيبني بديل بصري للصورة البايظة، مع زرار "اقترح صورة بديلة" بيفتح بوباب التعديل
+// على طول عشان تدور على صورة تانية وتحفظها في الشيت
+function buildBrokenImagePlaceholder(it){
+  const wrap=document.createElement("div");
+  wrap.className="thumb thumb-suggest";
+  const fixBtn=document.createElement("button");
+  fixBtn.type="button";
+  fixBtn.className="thumb-suggest-btn";
+  fixBtn.textContent="Suggest replacement";
+  fixBtn.addEventListener("click",(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    openEditModal(it);
+  });
+  wrap.append(fixBtn);
+  return wrap;
+}
+
+// بتبني كارت واحد بس (DOM element) من غير ما تلمس الشبكة كلها —
+// مستخدمة في render() للرسم الكامل، وفي applyLocally() لتحديث كارت واحد بعد التعديل
+function buildCard(it){
+    const card=document.createElement(it.link?"a":"div");
+    if(it.link) Object.assign(card,{href:it.link,target:"_blank",rel:"noopener noreferrer"});
+    card.className="card";
+    card.dataset.row = it.row!=null ? String(it.row) : "";
+
+    let media;
+    const imgKey = it.image ? normalizeLink(it.image) : "";
+    const imgStatus = imgKey ? imageStatusCache[imgKey] : null;
+    if(it.image && imgStatus?.status === "dead"){
+      media = buildBrokenImagePlaceholder(it);
+    } else if(it.image){
+      media=document.createElement("img");
+      Object.assign(media,{className:"thumb",src:it.image,alt:"",loading:"lazy"});
+      media.onerror=()=>{
+        const key = normalizeLink(it.image);
+        if(key){
+          imageStatusCache[key] = { status:"dead", ts: Date.now() };
+          try{ localStorage.setItem("ziImageStatusCache", JSON.stringify(imageStatusCache)); }catch{}
+        }
+        const placeholder = buildBrokenImagePlaceholder(it);
+        media.replaceWith(placeholder);
+      };
+    } else if(it.vid){
+      media=document.createElement("iframe");
+      Object.assign(media,{
+        className:"thumb",
+        src:toEmbedUrl(it.vid),
+        frameborder:"0",
+        allow:"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+        allowfullscreen:true
+      });
+    } else {
+      media = buildMissingImagePlaceholder(it);
+    }
+
+    const content=document.createElement("div");
+    content.className="content";
+
+    const rawTitle = it.title || "Untitled";
+    const title=document.createElement("a");
+    Object.assign(title,{className:"title",href:it.link||"#",target:"_blank",textContent:rawTitle});
+
+    // أيقونة فيديو صغيرة قبل العنوان لو فيه لينك فيديو (عمود vid)، بتفتح الفيديو نفسه بس، مش اللينك الأساسي
+    let titleRow=null;
+    const vidKey = it.vid ? normalizeLink(it.vid) : "";
+    const vidStatus = vidKey ? videoStatusCache[vidKey] : null;
+    if(it.vid){
+      titleRow=document.createElement("div");
+      titleRow.className="title-row";
+      const vidIcon=document.createElement("span");
+      vidIcon.className="vid-icon";
+      if(vidStatus?.status==="dead") vidIcon.classList.add("vid-icon-dead");
+      vidIcon.textContent="🎥";
+      vidIcon.title = vidStatus?.status==="dead"
+        ? "Dead video link — last checked: " + new Date(vidStatus.ts).toLocaleString()
+        : "Open video";
+      vidIcon.addEventListener("click",(e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(it.vid, "_blank", "noopener,noreferrer");
+      });
+      titleRow.append(vidIcon, title);
+    }
+
+    // النوتس بتتعرض تحت العنوان بخط أخف (لو عمود note فيه قيمة)
+    let notesEl=null;
+    if(it.note){
+      notesEl=document.createElement("div");
+      notesEl.className="notes";
+      notesEl.textContent=it.note;
+    }
+
+    // هاشتاجات وأقواس (() [] {} <> "" «») من العنوان والنوت مع بعض → بحث نصي
+    const searchTags = getItemTags(it);
+    // قيم عمود Type (مفصولة بفاصلة) → فلتر Type
+    const itemTypes = uniqueCI(splitValues(it.type));
+    // قيم عمود Rate (مفصولة بفاصلة) → فلتر Rate
+    const itemRates = uniqueCI(splitValues(it.rate));
+
+    const makeChip = (text, extraClass, onClick) => {
+      const chip=document.createElement("span");
+      chip.className="hashtag-chip"+(extraClass?" "+extraClass:"");
+      chip.textContent=text;
+      chip.addEventListener("click",(e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      });
+      return chip;
+    };
+
+    // اسم الموقع (الدومين) هيتحط كأول بابل في صف التاجز، وبيبحث باسم الموقع لما تدوس عليه
+    const siteName = it.link ? getSiteName(it.link) : "";
+
+    const checkFilterBox = (containerId, value) => {
+      const cb=[...document.querySelectorAll(`#${containerId} input`)]
+        .find(i=>i.value.toLowerCase()===value.toLowerCase());
+      if(cb){ cb.checked = true; applyFilters(); }
+    };
+
+    // ====== Warning flags: duplicate / similar / dead link (بتظهر أول حاجة في نفس صف البابلز) ======
+    const dupList = duplicateLinkMap.get(it);
+    const simList = similarTitleMap.get(it);
+    const linkKey = normalizeLink(it.link);
+    const linkStatus = linkKey ? linkStatusCache[linkKey] : null;
+
+    const flagDefs=[];
+    if(dupList && dupList.length){
+      flagDefs.push({
+        label:"⚠️ Duplicate",
+        cls:"flag-dup",
+        tip:"Same link also found in: " + dupList.map(x=>x.title||x.link).slice(0,5).join(" | "),
+        onClick: ()=>setFlagFilter("duplicate")
+      });
+    }
+    if(simList && simList.length){
+      flagDefs.push({
+        label:"🔎 Similar",
+        cls:"flag-similar",
+        tip:"Similar title to: " + simList
+          .sort((a,b)=>b.score-a.score)
+          .slice(0,5)
+          .map(x=>`${x.item.title||x.item.link} (${Math.round(x.score*100)}%)`)
+          .join(" | "),
+        onClick: ()=>setFlagFilter("similar")
+      });
+    }
+    if(linkStatus && linkStatus.status==="dead"){
+      title.classList.add("title-dead-link");
+      const methodNote = linkStatus.method==="content" ? " (video/content removed)" : " (server unreachable)";
+      title.title = "Dead link" + methodNote + " — last checked: " + new Date(linkStatus.ts).toLocaleString();
+      flagDefs.push({
+        label:"💀 Dead Link",
+        cls:"flag-dead",
+        tip:"Last checked: " + new Date(linkStatus.ts).toLocaleString() + methodNote,
+        onClick: ()=>setFlagFilter("dead")
+      });
+    }
+    if(vidStatus && vidStatus.status==="dead"){
+      flagDefs.push({
+        label:"🎥 Dead Video",
+        cls:"flag-dead-vid",
+        tip:"Dead video link — last checked: " + new Date(vidStatus.ts).toLocaleString(),
+        onClick: ()=>setFlagFilter("deadvid")
+      });
+    }
+    if(imgStatus && imgStatus.status==="dead"){
+      flagDefs.push({
+        label:"🖼️ Broken Image",
+        cls:"flag-broken-img",
+        tip:"Broken image — last checked: " + new Date(imgStatus.ts).toLocaleString() + ". Click to open Suggest replacement.",
+        onClick: ()=>openEditModal(it)
+      });
+    }
+    if(!it.image && !it.vid){
+      flagDefs.push({
+        label:"🖼️ No Image",
+        cls:"flag-no-image",
+        tip:"This card has no image yet. Click to open Suggest image.",
+        onClick: ()=>openEditModal(it)
+      });
+    }
+
+    // بابل واحد يجمع: علامات التحذير الأول، وبعدين الهاشتاج/الأقواس، وبعدين Type، وبعدين Rate
+    let tagsEl=null;
+    if(siteName || flagDefs.length || searchTags.length || itemTypes.length || itemRates.length){
+      tagsEl=document.createElement("div");
+      tagsEl.className="hashtags";
+
+      if(siteName){
+        tagsEl.appendChild(makeChip(`(${siteName})`, "chip-site", ()=>{
+          searchEl.value = siteName;
+          applyFilters();
+        }));
+      }
+
+      flagDefs.forEach(f=>{
+        const badge=makeChip(f.label, f.cls, f.onClick);
+        badge.title=f.tip;
+        tagsEl.appendChild(badge);
+      });
+
+      searchTags.forEach(tag=>{
+        const label = /^\S+$/.test(tag) ? "#"+tag : tag;
+        tagsEl.appendChild(makeChip(label, "", ()=>{
+          searchEl.value = tag;
+          applyFilters();
+        }));
+      });
+
+      itemTypes.forEach(t=>{
+        tagsEl.appendChild(makeChip(t, "chip-type", ()=>checkFilterBox("typeCheckboxes", t)));
+      });
+
+      itemRates.forEach(r=>{
+        tagsEl.appendChild(makeChip(r, "chip-rate", ()=>checkFilterBox("rateCheckboxes", r)));
+      });
+    }
+
+    const details=document.createElement("div");
+    details.className="details";
+
+    const searchLink=document.createElement("a");
+    Object.assign(searchLink, { href:`https://www.google.com/search?q=${encodeURIComponent(it.title || "")}`, target:"_blank", textContent:"search" });
+
+    const lensLink=document.createElement("a");
+    Object.assign(lensLink,{ href:`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(it.image || "")}`, target:"_blank", textContent:"lens" });
+
+const yandexLink = document.createElement("a");
+Object.assign(yandexLink,{
+  href:`https://yandex.com/images/search?rpt=imageview&url=${encodeURIComponent(it.image || "")}`,
+  target:"_blank",
+  textContent:"yandex"
+});
+
+    const rowLink=document.createElement("a");
+    Object.assign(rowLink,{ href:`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/edit#gid=${CONFIG.SHEET_GID}&range=A${it.row}`, target:"_blank", textContent:`${it.row}` });
+
+    const editLink=document.createElement("a");
+    Object.assign(editLink,{ href:"#", className:"edit-link", title:"Edit", textContent:"✏️" });
+    editLink.addEventListener("click",(e)=>{ e.preventDefault(); e.stopPropagation(); openEditModal(it); });
+
+    details.append(  searchLink," | ",  lensLink," | ",  yandexLink," | ",  rowLink," ", editLink);
+
+    content.append(titleRow || title);
+    if(notesEl || tagsEl){
+      const titleDivider=document.createElement("div");
+      titleDivider.className="title-divider";
+      content.append(titleDivider);
+    }
+    if(notesEl) content.append(notesEl);
+    if(tagsEl) content.append(tagsEl);
+    content.append(details);
+
+    if(media) card.append(media);
+    card.append(content);
+    return card;
+}
+
+function render(list){
+  gridEl.innerHTML="";
+  const fragment=document.createDocumentFragment();
+  list.forEach(it=>{
+    fragment.appendChild(buildCard(it));
+  });
+  gridEl.appendChild(fragment);
+  setStatus("",false);
+}
+
+function renderPartial(list){
+  const end = page * CONFIG.PAGE_SIZE;
+  render(list.slice(0, end));
+  const countEl = document.getElementById("count");
+  if(countEl) countEl.textContent = list.length;
+}
+
+// بيفعّل checkbox معين في دروب داون Flags (تستخدم من الدوسة على البابلز نفسها)
+function setFlagFilter(value){
+  const cb=[...document.querySelectorAll("#flagsCheckboxes input")]
+    .find(i=>i.value===value);
+  if(cb){
+    cb.checked = true;
+    applyFilters();
+  }
+}
+
+let statsNoRateOnly = false;
+let statsNoTypeOnly = false;
+
+function filterFromStats({ rate, type, flag } = {}){
+  // بنصفّر كل الفلاتر الحالية (Rate/Type/Flags/Tags/Search) ونطبّق بس اللي انت دوست عليه
+  document.querySelectorAll("#filterOverlay input[type=checkbox]").forEach(cb=> cb.checked = false);
+  searchEl.value = "";
+  statsNoRateOnly = false;
+  statsNoTypeOnly = false;
+
+  if (rate === "none") statsNoRateOnly = true;
+  else if (rate != null){
+    const cb=[...document.querySelectorAll("#rateCheckboxes input")].find(i=>i.value===String(rate));
+    if(cb) cb.checked = true;
+  }
+
+  if (type === "__no_type__") statsNoTypeOnly = true;
+  else if (type != null){
+    const cb=[...document.querySelectorAll("#typeCheckboxes input")].find(i=>i.value.toLowerCase()===String(type).toLowerCase());
+    if(cb) cb.checked = true;
+  }
+
+  if (flag != null){
+    const cb=[...document.querySelectorAll("#flagsCheckboxes input")].find(i=>i.value===flag);
+    if(cb) cb.checked = true;
+  }
+
+  applyFilters(true);
+  document.getElementById("statsCloseBtn").click();
+}
+
+function applyFilters(fromStats){
+  if(!fromStats){ statsNoRateOnly = false; statsNoTypeOnly = false; }
+  page = 1;
+  let filtered = items.slice(); // نسخة، مش نفس الأراي — عشان الـ sort متأثرش على ترتيب الداتا الأصلي
+
+  const selFlags = [...document.querySelectorAll("#flagsCheckboxes input:checked")].map(i=>i.value);
+  if (selFlags.length) {
+    filtered = filtered.filter(item => selFlags.some(flag=>{
+      if(flag==="duplicate") return duplicateLinkMap.has(item);
+      if(flag==="similar")   return similarTitleMap.has(item);
+      if(flag==="dead"){
+        const key = normalizeLink(item.link);
+        return key && linkStatusCache[key]?.status === "dead";
+      }
+      if(flag==="deadvid"){
+        const key = normalizeLink(item.vid);
+        return key && videoStatusCache[key]?.status === "dead";
+      }
+      if(flag==="brokenimg"){
+        const key = normalizeLink(item.image);
+        return key && imageStatusCache[key]?.status === "dead";
+      }
+      if(flag==="noimage"){
+        return !item.image && !item.vid;
+      }
+      return false;
+    }));
+  }
+
+  const q = searchEl.value.trim().toLowerCase();
+
+  // بتتحقق من نص عمود واحد بس (مش هجيص التلاتة أعمدة مع بعض)
+  function fieldMatchesQuery(fieldText, q){
+    const hay = (fieldText || "").toLowerCase();
+
+    // exact phrases "..."
+    const phrases = [...q.matchAll(/"([^"]+)"/g)].map(m => m[1]);
+    for (const p of phrases) {
+      if (!hay.includes(p)) return false;
+    }
+
+    let rest = q.replace(/"[^"]+"/g, " ").trim();
+
+    // exclude -word
+    const excludes = rest.split(/\s+/).filter(w => w.startsWith("-")).map(w => w.slice(1));
+    for (const ex of excludes) {
+      if (ex && hay.includes(ex)) return false;
+    }
+
+    rest = rest
+      .split(/\s+/)
+      .filter(w => !w.startsWith("-"))
+      .join(" ");
+
+    if (!rest) return phrases.length > 0; // كان فيه بس فريز أو إكسكلود ومفيش كلام تاني
+
+    // OR | ,
+    if (rest.includes("|") || rest.includes(",")) {
+      return rest
+        .split(/[|,]/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .some(part =>
+          part.split(/[\s+]+/).every(w => hay.includes(w))
+        );
+    }
+
+    // AND (space / +)
+    const words = rest.split(/[\s+]+/).filter(Boolean);
+    return words.every(w => hay.includes(w));
+  }
+
+  if (q) {
+    // لكل عنصر بنحسب أعلى أولوية عمود اتحقق فيه: 1=عنوان، 2=ملاحظات، 3=لينك
+    filtered = filtered
+      .map(item => {
+        let priority = 0;
+        if (fieldMatchesQuery(item.title, q)) priority = 1;
+        else if (fieldMatchesQuery(item.note, q)) priority = 2;
+        else if (fieldMatchesQuery(item.link, q)) priority = 3;
+        return { item, priority };
+      })
+      .filter(x => x.priority > 0)
+      .sort((a, b) => a.priority - b.priority)
+      .map(x => x.item);
+  }
+
+  // ====== الفلاتر التانية (زي ما هي) ======
+
+const selRates = [...document.querySelectorAll("#rateCheckboxes input:checked")]
+  .map(i => i.value.toLowerCase());
+
+if (selRates.length)
+  filtered = filtered.filter(x =>
+    splitValues(x.rate).some(r => selRates.includes(r.toLowerCase()))
+  );
+
+const selTypes = [...document.querySelectorAll("#typeCheckboxes input:checked")]
+  .map(i => i.value.toLowerCase());
+
+if (selTypes.length)
+  filtered = filtered.filter(x =>
+    splitValues(x.type).some(t => selTypes.includes(t.toLowerCase()))
+  );
+
+const selTags = [...document.querySelectorAll("#tagCheckboxes input:checked")]
+  .map(i => i.value.toLowerCase());
+
+if (selTags.length)
+  filtered = filtered.filter(x =>
+    getItemTags(x).some(t => selTags.includes(t.toLowerCase()))
+  );
+
+// دوس على "No Rate"/"No Type" جوه صفحة الإحصائيات
+if (statsNoRateOnly)
+  filtered = filtered.filter(x => !splitValues(x.rate).map(Number).some(r => r>=1 && r<=7));
+if (statsNoTypeOnly)
+  filtered = filtered.filter(x => splitValues(x.type).length === 0);
+
+
+  if(sortSelectEl.value==="title")
+    filtered.sort((a,b)=>(a.title||"").localeCompare(b.title||"",undefined,{numeric:true,sensitivity:"base"}));
+  else if(sortSelectEl.value==="link")
+    filtered.sort((a,b)=>(a.link||"").localeCompare(b.link||"",undefined,{numeric:true,sensitivity:"base"}));
+  else if(sortSelectEl.value==="rate")
+    filtered.sort((a,b)=>(a.rate||"").localeCompare(b.rate||"",undefined,{numeric:true,sensitivity:"base"}));
+  else if(sortSelectEl.value==="type")
+    filtered.sort((a,b)=>(a.type||"").localeCompare(b.type||"",undefined,{numeric:true,sensitivity:"base"}));
+  else if(sortSelectEl.value==="random")
+    filtered.sort(()=>Math.random()-0.5);
+
+  if(orderSelectEl.value==="desc") filtered.reverse();
+
+  filteredCache = filtered;
+  renderPartial(filteredCache);
+}
+
+
+
+// ====== Add / Edit Card Modal ======
+let currentEditItem = null;
+let isAddMode = false;
+let selectedRateValue = 0;
+
+// يبني قايمة الـ Type chips من كل القيم الفريدة الموجودة أصلاً في عمود Type بالداتا
+function renderTypeChips(selected){
+  const container = document.getElementById("editTypeChips");
+  container.innerHTML = "";
+  document.getElementById("editTypeNewInput").value = "";
+  const allTypes = uniqueCI(items.flatMap(i=>splitValues(i.type)));
+  if(!allTypes.length){
+    const empty=document.createElement("span");
+    empty.className="modal-chip-empty";
+    empty.textContent="No existing Type values found yet — add one from the sheet first.";
+    container.appendChild(empty);
+    return;
+  }
+  const selectedLower = selected.map(s=>s.toLowerCase());
+  allTypes.forEach(t=>{
+    const chip=document.createElement("span");
+    chip.className="modal-chip"+(selectedLower.includes(t.toLowerCase())?" selected":"");
+    chip.textContent=t;
+    chip.dataset.value=t;
+    chip.addEventListener("click",()=>chip.classList.toggle("selected"));
+    container.appendChild(chip);
+  });
+}
+
+function getSelectedTypes(){
+  return [...document.querySelectorAll("#editTypeChips .modal-chip.selected")]
+    .map(c=>c.dataset.value);
+}
+
+// بيضيف تشيب جديد (أو أكتر لو مفصولين بفاصلة) من التيكست بوكس الصغير
+function addNewTypeChips(){
+  const input = document.getElementById("editTypeNewInput");
+  const newTypes = splitValues(input.value);
+  if(!newTypes.length) return;
+
+  const container = document.getElementById("editTypeChips");
+  const emptyMsg = container.querySelector(".modal-chip-empty");
+  if(emptyMsg) emptyMsg.remove();
+
+  newTypes.forEach(t=>{
+    const existingChip = [...container.querySelectorAll(".modal-chip")]
+      .find(c=>c.dataset.value.toLowerCase()===t.toLowerCase());
+    if(existingChip){
+      existingChip.classList.add("selected"); // لو موجودة أصلاً، بس فعّلها
+      return;
+    }
+    const chip=document.createElement("span");
+    chip.className="modal-chip selected";
+    chip.textContent=t;
+    chip.dataset.value=t;
+    chip.addEventListener("click",()=>chip.classList.toggle("selected"));
+    container.appendChild(chip);
+  });
+
+  input.value = "";
+}
+
+document.getElementById("editTypeAddBtn").onclick = addNewTypeChips;
+document.getElementById("editTypeNewInput").addEventListener("keydown", e=>{
+  if(e.key==="Enter"){ e.preventDefault(); addNewTypeChips(); }
+});
+
+// نجوم التقييم من 1 لـ 7
+function renderStars(rateStr){
+  const container = document.getElementById("editRateStars");
+  container.innerHTML = "";
+  selectedRateValue = parseInt(rateStr, 10) || 0;
+  for(let i=1;i<=7;i++){
+    const star=document.createElement("span");
+    star.className="modal-star"+(i<=selectedRateValue?" filled":"");
+    star.textContent="★";
+    star.dataset.value=i;
+    star.addEventListener("click",()=>{
+      selectedRateValue = (selectedRateValue===i) ? 0 : i; // دوسة على نفس النجمة بتصفّر التقييم
+      updateStarsDisplay();
+    });
+    container.appendChild(star);
+  }
+}
+
+function updateStarsDisplay(){
+  document.querySelectorAll("#editRateStars .modal-star").forEach(star=>{
+    star.classList.toggle("filled", Number(star.dataset.value) <= selectedRateValue);
+  });
+}
+
+function getSelectedRate(){
+  return selectedRateValue > 0 ? String(selectedRateValue) : "";
+}
+
+// بيتأكد إن اليوزر داخل الباسورد الصح قبل ما يفتح أي بوباب تعديل/إضافة (مرة واحدة بس لكل الجلسة)
+function ensureEditUnlocked(){
+  if(editUnlocked || !CONFIG.EDIT_PASSWORD) return true;
+  const pass = prompt("Enter the edit password:");
+  if(pass === null) return false; // Cancel
+  if(pass !== CONFIG.EDIT_PASSWORD){ alert("Wrong password"); return false; }
+  editUnlocked = true;
+  return true;
+}
+
+// بيبني روابط بحث سريعة عن صورة بديلة (Google Images / Bing Images / Yandex) بناءً على عنوان الكارت
+function renderImageAltSearchLinks(title){
+  const box = document.getElementById("editImageAltSearch");
+  box.innerHTML = "";
+  const q = (title || "").trim();
+  if(!q) return;
+  const links = [
+    { label:"🔎 Google Images", href:`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}` },
+    { label:"🔎 Bing Images",   href:`https://www.bing.com/images/search?q=${encodeURIComponent(q)}` },
+    { label:"🔎 Yandex Images", href:`https://yandex.com/images/search?text=${encodeURIComponent(q)}` },
+  ];
+  links.forEach(l=>{
+    const a=document.createElement("a");
+    Object.assign(a,{href:l.href, target:"_blank", rel:"noopener noreferrer", textContent:l.label});
+    box.appendChild(a);
+  });
+}
+
+// بيملي حقول بوباب التعديل/الإضافة بقيم عنصر معين (أو فاضية لو مفيش عنصر)
+function fillModalFields(it){
+  document.getElementById("editTitle").value = it?.title || "";
+  document.getElementById("editLink").value  = it?.link  || "";
+  document.getElementById("editImage").value = it?.image || "";
+  document.getElementById("editVid").value   = it?.vid   || "";
+  document.getElementById("editNote").value  = it?.note  || "";
+  renderTypeChips(it ? splitValues(it.type) : []);
+  renderStars(it?.rate || "");
+  document.getElementById("editMsg").textContent = "";
+  renderImageAltSearchLinks(it?.title || "");
+}
+
+function openEditModal(it){
+  if(!ensureEditUnlocked()) return;
+  isAddMode = false;
+  currentEditItem = it;
+  document.getElementById("editModalTitle").textContent = `Edit Card Data (row ${it.row || ""})`;
+  fillModalFields(it);
+  document.getElementById("editSaveBtn").textContent = "Save";
+  document.getElementById("editOverlay").classList.add("show");
+}
+
+function openAddModal(){
+  if(!ensureEditUnlocked()) return;
+  isAddMode = true;
+  currentEditItem = null;
+  document.getElementById("editModalTitle").textContent = "Add New Card";
+  fillModalFields(null);
+  document.getElementById("editSaveBtn").textContent = "Add";
+  document.getElementById("editOverlay").classList.add("show");
+}
+
+function closeEditModal(){
+  hidePagePicker();
+  document.getElementById("editOverlay").classList.remove("show");
+  currentEditItem = null;
+  isAddMode = false;
+}
+
+// بيمسح كل الحقول الظاهرة في البوباب بس (مالوش دعوة بالشيت خالص) — لو سيبتها فاضية وبعدين دست Save، هتتحفظ فاضية فعلاً
+function clearModalFields(){
+  fillModalFields(null);
+}
+
+document.getElementById("addCardBtn").onclick = openAddModal;
+document.getElementById("editClearBtn").onclick = clearModalFields;
+document.getElementById("editCancelBtn").onclick = closeEditModal;
+document.getElementById("editOverlay").addEventListener("click", e=>{
+  if(e.target.id === "editOverlay") closeEditModal();
+});
+
+document.getElementById("editSaveBtn").onclick = async () => {
+  if(!isAddMode && !currentEditItem) return;
+
+  const payload = {
+    action: isAddMode ? "add" : "edit",
+    row:    isAddMode ? undefined : currentEditItem.row,
+    sheet:  CONFIG.SHEET_NAME,
+    gid:    CONFIG.SHEET_GID,
+    title:  document.getElementById("editTitle").value,
+    link:   document.getElementById("editLink").value,
+    image:  document.getElementById("editImage").value,
+    vid:    document.getElementById("editVid").value,
+    type:   getSelectedTypes().join(", "),
+    rate:   getSelectedRate(),
+    note:   document.getElementById("editNote").value,
+  };
+
+  const msgEl = document.getElementById("editMsg");
+
+  if(!CONFIG.EDIT_ENDPOINT){
+    msgEl.textContent = "You still need to set the Apps Script Web App URL in EDIT_ENDPOINT in the CONFIG block.";
+    return;
+  }
+
+  msgEl.textContent = "Saving…";
+  document.getElementById("editSaveBtn").disabled = true;
+
+  // نفس تكنيك add.js: الطلب بيتبعت بـ keepalive (يفضل ماشي لو حتى المودال
+  // اتقفل)، وبنعمله race مع مهلة قصيرة بدل ما ننتظر رد Apps Script كامل.
+  // لو المهلة خلصت الأول، بنثق في الطلب اللي شغال ونحدّث الواجهة على طول؛
+  // النتيجة الحقيقية بتتفحص في الخلفية بعدين.
+  const savePromise = fetch(CONFIG.EDIT_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids CORS preflight
+    keepalive: true,
+    body: JSON.stringify(payload)
+  }).then(res => res.json().catch(()=>({ok:true})));
+
+  const TIMEOUT = Symbol("timeout");
+  const timeoutPromise = new Promise(resolve => setTimeout(()=>resolve(TIMEOUT), 1000));
+
+  function applyLocally(data){
+    if(isAddMode){
+      const newItem = {
+        row:   data && data.row != null ? String(data.row) : "",
+        title: payload.title, link: payload.link, image: payload.image,
+        vid:   payload.vid,   type: payload.type,  rate:  payload.rate,
+        note:  payload.note
+      };
+      items.push(newItem);
+      // كارت جديد ممكن يغيّر نتيجة الفلتر/الترتيب فعلاً (يدخل في الشبكة من مكان تاني)،
+      // فهنا لازم إعادة رسم كاملة
+      computeDuplicates();
+      populateFilters();
+      applyFilters();
+    } else {
+      Object.assign(currentEditItem, payload);
+      // تحديث كارت واحد بس مكانه، من غير ما نلمس الفلتر/الترتيب/الصفحة الحالية —
+      // عشان التعديل ميعملش "ريفريش" لكل الشبكة ويضيع الترتيب اللي انت عامله
+      computeDuplicates();
+      populateFilters();
+      const oldCard = gridEl.querySelector(`[data-row="${CSS.escape(String(currentEditItem.row))}"]`);
+      if(oldCard){
+        oldCard.replaceWith(buildCard(currentEditItem));
+      }
+    }
+  }
+
+  let result;
+  try{
+    result = await Promise.race([savePromise, timeoutPromise]);
+  }catch(err){
+    msgEl.textContent = "Error: " + (err.message || err);
+    document.getElementById("editSaveBtn").disabled = false;
+    return;
+  }
+
+  if(result === TIMEOUT){
+    // مفيش تأكيد خلال ثانية — الطلب أصلاً شغال بـ keepalive، فبنثق فيه
+    // ونحدّث الواجهة ونقفل المودال بدل ما نستنى.
+    applyLocally(null);
+    msgEl.textContent = isAddMode ? "Added successfully ✅" : "Saved successfully ✅";
+    document.getElementById("editSaveBtn").disabled = false;
+    setTimeout(afterSaveClose, 300);
+    savePromise
+      .then(data=>{ if(data && data.ok===false) console.error("Zi_LINK save error (after close):", data.error); })
+      .catch(err=>console.error("Zi_LINK save error (after close):", err));
+    return;
+  }
+
+  document.getElementById("editSaveBtn").disabled = false;
+  if(result && result.ok === false){
+    msgEl.textContent = "Error: " + (result.error || "Save failed");
+    return;
+  }
+  applyLocally(result);
+  msgEl.textContent = isAddMode ? "Added successfully ✅" : "Saved successfully ✅";
+  setTimeout(afterSaveClose, 400);
+};
+
+searchEl.oninput = applyFilters;
+
+// ====== بوبوب الـ Filter & Sort (Sort + Rate + Type + Flags + Tags) ======
+let filterSnapshotRate = [];
+let filterSnapshotType = [];
+let filterSnapshotFlags = [];
+let filterSnapshotTags = [];
+
+function openFilterPopup(){
+  document.querySelectorAll('input[name="sortFieldRadio"]').forEach(r=> r.checked = (r.value === sortSelectEl.value));
+  document.querySelectorAll('input[name="sortOrderRadio"]').forEach(r=> r.checked = (r.value === orderSelectEl.value));
+  filterSnapshotRate = [...document.querySelectorAll("#rateCheckboxes input:checked")].map(cb=>cb.value);
+  filterSnapshotType  = [...document.querySelectorAll("#typeCheckboxes input:checked")].map(cb=>cb.value);
+  filterSnapshotFlags = [...document.querySelectorAll("#flagsCheckboxes input:checked")].map(cb=>cb.value);
+  filterSnapshotTags  = [...document.querySelectorAll("#tagCheckboxes input:checked")].map(cb=>cb.value);
+  document.getElementById("filterOverlay").classList.add("show");
+}
+function closeFilterPopup(){
+  document.getElementById("filterOverlay").classList.remove("show");
+}
+document.getElementById("filterBtn").onclick = openFilterPopup;
+document.getElementById("filterOkBtn").onclick = () => {
+  const field = document.querySelector('input[name="sortFieldRadio"]:checked')?.value || "none";
+  const order = document.querySelector('input[name="sortOrderRadio"]:checked')?.value || "asc";
+  sortSelectEl.value = field;
+  orderSelectEl.value = order;
+  applyFilters();
+  closeFilterPopup();
+};
+document.getElementById("filterCancelBtn").onclick = () => {
+  // ترجيع نفس الاختيارات اللي كانت متفعّلة قبل ما تفتح البوبوب
+  document.querySelectorAll("#rateCheckboxes input").forEach(cb=> cb.checked = filterSnapshotRate.includes(cb.value));
+  document.querySelectorAll("#typeCheckboxes input").forEach(cb=> cb.checked = filterSnapshotType.includes(cb.value));
+  document.querySelectorAll("#flagsCheckboxes input").forEach(cb=> cb.checked = filterSnapshotFlags.includes(cb.value));
+  document.querySelectorAll("#tagCheckboxes input").forEach(cb=> cb.checked = filterSnapshotTags.includes(cb.value));
+  closeFilterPopup();
+};
+document.getElementById("filterOverlay").addEventListener("click", e=>{
+  if(e.target.id === "filterOverlay") document.getElementById("filterCancelBtn").click();
+});
+
+// ====== زرار "Reset" الكبير — بيمسح الترتيب والفلتر والبحث ويرجع الفايل لحالته الأساسية ======
+document.getElementById("resetAllBtn").onclick = () => {
+  searchEl.value = "";
+  sortSelectEl.value = "none";
+  orderSelectEl.value = "asc";
+  document.querySelectorAll("#rateCheckboxes input, #typeCheckboxes input, #flagsCheckboxes input, #tagCheckboxes input")
+    .forEach(cb=> cb.checked = false);
+  statsNoRateOnly = false;
+  statsNoTypeOnly = false;
+  applyFilters();
+};
+
+// ====== بوباب الإحصائيات (Rate 1-7 رأسي × Type أفقي، وبعدهم Dead/Similar/Duplicate) ======
+function computeStatsTable(){
+  const NO_RATE = "none", NO_TYPE = "__no_type__";
+  const rateBuckets = [1,2,3,4,5,6,7,NO_RATE];
+  const types = uniqueCI(items.flatMap(i=>splitValues(i.type)));
+  const typeCols = [...types, NO_TYPE];
+
+  const rows = {};
+  rateBuckets.forEach(r=>{ rows[r] = { types:{}, dead:0, deadvid:0, brokenimg:0, noimage:0, similar:0, duplicate:0, total:0 }; });
+  typeCols.forEach(t=>{ rateBuckets.forEach(r=>{ rows[r].types[t] = 0; }); });
+
+  items.forEach(it=>{
+    let itemRates = splitValues(it.rate).map(Number).filter(r=>r>=1 && r<=7);
+    if(!itemRates.length) itemRates = [NO_RATE]; // لينكات من غير ريت خالص
+
+    let itemTypes = splitValues(it.type);
+    if(!itemTypes.length) itemTypes = [NO_TYPE]; // لينكات من غير طيب خالص
+
+    const key = normalizeLink(it.link);
+    const isDead      = !!(key && linkStatusCache[key]?.status === "dead");
+    const vidKey      = normalizeLink(it.vid);
+    const isDeadVid   = !!(vidKey && videoStatusCache[vidKey]?.status === "dead");
+    const imgKey      = normalizeLink(it.image);
+    const isBrokenImg = !!(imgKey && imageStatusCache[imgKey]?.status === "dead");
+    const isNoImage   = !it.image && !it.vid;
+    const isSimilar   = similarTitleMap.has(it);
+    const isDuplicate = duplicateLinkMap.has(it);
+
+    itemRates.forEach(r=>{
+      itemTypes.forEach(t=>{
+        const matchedType = t===NO_TYPE ? NO_TYPE : types.find(x=>x.toLowerCase()===t.toLowerCase());
+        if(matchedType) rows[r].types[matchedType]++;
+      });
+      if(isDead)      rows[r].dead++;
+      if(isDeadVid)   rows[r].deadvid++;
+      if(isBrokenImg) rows[r].brokenimg++;
+      if(isNoImage)   rows[r].noimage++;
+      if(isSimilar)   rows[r].similar++;
+      if(isDuplicate) rows[r].duplicate++;
+      rows[r].total++;
+    });
+  });
+
+  return { rateBuckets, typeCols, rows, NO_RATE, NO_TYPE };
+}
+
+function renderStatsTable(){
+  let { rateBuckets, typeCols, rows, NO_RATE, NO_TYPE } = computeStatsTable();
+  const table = document.getElementById("statsTable");
+  table.innerHTML = "";
+
+  // نشيل صف "No Rate" لو مفيش ولا لينك من غيره، ونشيل عمود "No Type" لو مفيش ولا لينك من غيره
+  if(rows[NO_RATE].total === 0){
+    rateBuckets = rateBuckets.filter(r=>r!==NO_RATE);
+  }
+  const noTypeTotal = rateBuckets.reduce((sum,r)=> sum + (rows[r].types[NO_TYPE]||0), 0);
+  if(noTypeTotal === 0){
+    typeCols = typeCols.filter(t=>t!==NO_TYPE);
+  }
+
+  const typeLabel = t => t===NO_TYPE ? "---" : t;
+
+  // خلية جدول بتاخد نص + كلاس اختياري + هاندلر ضغط اختياري (لو مفيش هاندلر، مش كليكابل)
+  const makeCell = (tag, text, {cls="", zero=false, onClick=null} = {}) => {
+    const el = document.createElement(tag);
+    el.textContent = text;
+    if(cls) el.className = cls;
+    if(zero) el.classList.add("stats-zero");
+    if(onClick && !zero){
+      el.classList.add("stats-clickable");
+      el.title = "Click to filter by this";
+      el.addEventListener("click", onClick);
+    }
+    return el;
+  };
+
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  headRow.appendChild(makeCell("th", "", { cls:"stats-row-label" }));
+  typeCols.forEach(t=>{
+    headRow.appendChild(makeCell("th", typeLabel(t), {
+      onClick: () => filterFromStats({ type: t })
+    }));
+  });
+  headRow.appendChild(makeCell("th", "Total", { cls:"stats-total-col", onClick: () => filterFromStats({}) }));
+  headRow.appendChild(makeCell("th", "", { cls:"stats-gap" }));
+  headRow.appendChild(makeCell("th", "Dead",        { onClick: () => filterFromStats({ flag:"dead" }) }));
+  headRow.appendChild(makeCell("th", "Dead Video",  { onClick: () => filterFromStats({ flag:"deadvid" }) }));
+  headRow.appendChild(makeCell("th", "Broken Img",  { onClick: () => filterFromStats({ flag:"brokenimg" }) }));
+  headRow.appendChild(makeCell("th", "No Image",    { onClick: () => filterFromStats({ flag:"noimage" }) }));
+  headRow.appendChild(makeCell("th", "Similar",     { onClick: () => filterFromStats({ flag:"similar" }) }));
+  headRow.appendChild(makeCell("th", "Duplicate",   { onClick: () => filterFromStats({ flag:"duplicate" }) }));
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  const colTotals = { types:{}, dead:0, deadvid:0, brokenimg:0, noimage:0, similar:0, duplicate:0, total:0 };
+  typeCols.forEach(t=>{ colTotals.types[t] = 0; });
+
+  rateBuckets.forEach(r=>{
+    const row = rows[r];
+    const tr = document.createElement("tr");
+    const rowLabel = r===NO_RATE ? "---" : `★ ${r}`;
+    tr.appendChild(makeCell("td", rowLabel, {
+      cls:"stats-row-label",
+      onClick: () => filterFromStats({ rate: r })
+    }));
+    typeCols.forEach(t=>{
+      const v = row.types[t] || 0;
+      colTotals.types[t] += v;
+      tr.appendChild(makeCell("td", v, {
+        zero: v===0,
+        onClick: () => filterFromStats({ rate: r, type: t })
+      }));
+    });
+    colTotals.dead += row.dead;
+    colTotals.deadvid += row.deadvid;
+    colTotals.brokenimg += row.brokenimg;
+    colTotals.noimage += row.noimage;
+    colTotals.similar += row.similar;
+    colTotals.duplicate += row.duplicate;
+    colTotals.total += row.total;
+    tr.appendChild(makeCell("td", row.total, {
+      cls:"stats-total-col",
+      onClick: () => filterFromStats({ rate: r })
+    }));
+    tr.appendChild(makeCell("td", "", { cls:"stats-gap" }));
+    tr.appendChild(makeCell("td", row.dead,      { zero: row.dead===0,      onClick: () => filterFromStats({ rate: r, flag:"dead" }) }));
+    tr.appendChild(makeCell("td", row.deadvid,   { zero: row.deadvid===0,   onClick: () => filterFromStats({ rate: r, flag:"deadvid" }) }));
+    tr.appendChild(makeCell("td", row.brokenimg, { zero: row.brokenimg===0, onClick: () => filterFromStats({ rate: r, flag:"brokenimg" }) }));
+    tr.appendChild(makeCell("td", row.noimage,   { zero: row.noimage===0,   onClick: () => filterFromStats({ rate: r, flag:"noimage" }) }));
+    tr.appendChild(makeCell("td", row.similar,   { zero: row.similar===0,   onClick: () => filterFromStats({ rate: r, flag:"similar" }) }));
+    tr.appendChild(makeCell("td", row.duplicate, { zero: row.duplicate===0, onClick: () => filterFromStats({ rate: r, flag:"duplicate" }) }));
+    tbody.appendChild(tr);
+  });
+
+  const totalTr = document.createElement("tr");
+  totalTr.className = "stats-total-row";
+  totalTr.appendChild(makeCell("td", "Total", {
+    cls:"stats-row-label",
+    onClick: () => filterFromStats({})
+  }));
+  typeCols.forEach(t=>{
+    totalTr.appendChild(makeCell("td", colTotals.types[t], {
+      onClick: () => filterFromStats({ type: t })
+    }));
+  });
+  totalTr.appendChild(makeCell("td", colTotals.total, {
+    cls:"stats-total-col",
+    onClick: () => filterFromStats({})
+  }));
+  totalTr.appendChild(makeCell("td", "", { cls:"stats-gap" }));
+  totalTr.appendChild(makeCell("td", colTotals.dead,      { onClick: () => filterFromStats({ flag:"dead" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.deadvid,   { onClick: () => filterFromStats({ flag:"deadvid" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.brokenimg, { onClick: () => filterFromStats({ flag:"brokenimg" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.noimage,   { onClick: () => filterFromStats({ flag:"noimage" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.similar,   { onClick: () => filterFromStats({ flag:"similar" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.duplicate, { onClick: () => filterFromStats({ flag:"duplicate" }) }));
+  tbody.appendChild(totalTr);
+
+  table.appendChild(tbody);
+}
+
+document.getElementById("statsBtn").onclick = () => {
+  renderStatsTable();
+  document.getElementById("statsOverlay").classList.add("show");
+};
+document.getElementById("statsCloseBtn").onclick = () => {
+  document.getElementById("statsOverlay").classList.remove("show");
+};
+document.getElementById("statsOverlay").addEventListener("click", e=>{
+  if(e.target.id === "statsOverlay") document.getElementById("statsCloseBtn").click();
+});
+
+document.getElementById("fileInput").addEventListener("change", async function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    setStatus("Loading file…");
+    const name = file.name.toLowerCase();
+    let rows;
+    if(name.endsWith(".json")){
+      rows = JSON.parse(await file.text());
+      if(!Array.isArray(rows)) throw new Error("JSON file must contain an array of items");
+    } else if(name.endsWith(".xlsx") || name.endsWith(".xls")){
+      const buf = await file.arrayBuffer();
+      const wb  = XLSX.read(buf, {type:"array"});
+      const ws  = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(ws, {defval:""});
+    } else {
+      rows = parseCSV(await file.text());
+    }
+    items = rows.map(r=>({
+      image: String(r.image ?? ""),
+      title: String(r.title ?? ""),
+      link:  String(r.link  ?? ""),
+      row:   String(r.row ?? r.id ?? ""),
+      type:  String(r.type  ?? ""),
+      rate:  String(r.rate  ?? ""),
+      vid:   String(r.vid   ?? ""),
+      note:  String(r.note ?? r.notes ?? "")
+    })).filter(x=>x.image||x.title||x.link||x.vid);
+    computeDuplicates();
+    populateFilters();
+    applyFilters();
+    setStatus("",false);
+  }catch(err){
+    console.error(err);
+    setStatus("Error: "+(err.message||err), true);
+  }finally{
+    e.target.value = "";
+  }
+});
+
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  const headers = lines.shift().split(",").map(h=>h.trim().toLowerCase());
+  return lines.map(line=>{
+    const values = line.split(",");
+    const obj = {};
+    headers.forEach((h,i)=>obj[h]=values[i]?.trim());
+    return obj;
+  }).filter(x=>x.image||x.title||x.link||x.vid);
+}
+
+const makeJSONPUrl=cb=>`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}${CONFIG.SHEET_GID ? "&gid="+encodeURIComponent(CONFIG.SHEET_GID) : "&sheet="+encodeURIComponent(CONFIG.SHEET_NAME)}`;
+function loadGVizJSONP(){ return new Promise((resolve,reject)=>{ const cb="gviz_cb_"+Math.random().toString(36).slice(2); const cleanup=s=>{try{delete window[cb];}catch{} if(s?.parentNode) s.remove();}; window[cb]=d=>{resolve(d); cleanup(script);}; const script=document.createElement("script"); script.src=makeJSONPUrl(cb); script.async=true; script.onerror=()=>{cleanup(script); reject(Error("Network error"));}; document.head.appendChild(script); setTimeout(()=>{if(window[cb]){cleanup(script); reject(Error("Timeout"));}},12000); }); }
+function toItemsFromGViz(json){
+  const cols=(json.table.cols||[]).map(c=>(c.label||"").trim().toLowerCase());
+  const idx={ image:cols.indexOf("image"), title:cols.indexOf("title"), link:cols.indexOf("link"), row:cols.indexOf("row"), type:cols.indexOf("type"), rate:cols.indexOf("rate"), vid:cols.indexOf("vid"), note:cols.indexOf("note") };
+  return (json.table.rows||[]).map(r=>r.c||[]).map(c=>{
+    const g=i=>(i>=0&&c[i]&&c[i].v!=null?String(c[i].v):"");
+    return { image:g(idx.image), title:g(idx.title), link:g(idx.link), row:g(idx.row), type:g(idx.type), rate:g(idx.rate), vid:g(idx.vid), note:g(idx.note) };
+  }).filter(x=>x.image||x.title||x.link||x.vid);
+}
+
+let isReloading=false;
+const ITEMS_CACHE_KEY = "ziLinkItemsCache";
+async function load(){
+  await new Promise(r => setTimeout(r, 0)); // let the rest of the script finish initialising first
+  const hasSheet = !!CONFIG.SHEET_ID;
+  document.getElementById("settingsBtn").classList.toggle("needs-setup", !hasSheet);
+  if(!hasSheet){
+    items = []; applyFilters();
+    setStatus("No sheet linked yet — open ⚙️ Settings and paste your Google Sheet link.", true);
+    return;
+  }
+  try{ setStatus("Loading…");
+    const json = await loadGVizJSONP();
+    items = toItemsFromGViz(json);
+    try{ localStorage.setItem(ITEMS_CACHE_KEY, JSON.stringify({ id:CONFIG.SHEET_ID, gid:CONFIG.SHEET_GID, items })); }catch{}
+    computeDuplicates();
+    populateFilters(); applyFilters();
+  } catch(e){
+    console.error(e);
+    // offline / blocked -> show the last copy we saved
+    try{
+      const c = JSON.parse(localStorage.getItem(ITEMS_CACHE_KEY) || "null");
+      if(c && c.id === CONFIG.SHEET_ID && Array.isArray(c.items) && c.items.length){
+        items = c.items; computeDuplicates(); populateFilters(); applyFilters();
+        setStatus("Offline or sheet unreachable — showing the last saved copy.", true);
+        setTimeout(()=>setStatus("", false), 4000);
+        return;
+      }
+    }catch{}
+    setStatus("Error: "+(e.message||e)+" — check Settings (link + sharing).", true);
+  }
+}
+load();
+
+const reloadBtn=document.getElementById("reloadBtn");
+reloadBtn.onclick = async ()=>{
+  if(isReloading) return;
+  isReloading=true;
+  reloadBtn.classList.add("spinning");
+  reloadBtn.disabled=true;
+  try{ await load(); }
+  finally{ reloadBtn.classList.remove("spinning"); reloadBtn.disabled=false; isReloading=false; }
+};
+
+// ====== فحص الروابط الميتة/البايظة ======
+// أي منصة من دول عندها oEmbed endpoint بيرجع 404/401 لو الفيديو محذوف أو خاص،
+// وبيسمح بالـ CORS، فبنقدر نتأكد من "المحتوى نفسه" مش بس إن السيرفر شغال
+function detectOembedPlatform(url){
+  try{
+    const h = new URL(url).hostname.replace(/^www\./,"");
+    if(h.includes("youtube.com") || h.includes("youtu.be")) return "youtube";
+    if(h.includes("tiktok.com")) return "tiktok";
+    if(h.includes("vimeo.com")) return "vimeo";
+    return null;
+  }catch{ return null; }
+}
+
+function oembedEndpoint(platform, link){
+  if(platform==="youtube") return `https://www.youtube.com/oembed?url=${encodeURIComponent(link)}&format=json`;
+  if(platform==="tiktok")  return `https://www.tiktok.com/oembed?url=${encodeURIComponent(link)}`;
+  if(platform==="vimeo")   return `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(link)}`;
+  return null;
+}
+
+// بيرجع {status:'ok'|'dead', method:'content'|'network'}
+async function checkOneLink(link){
+  const platform = detectOembedPlatform(link);
+  const endpoint = platform ? oembedEndpoint(platform, link) : null;
+
+  if(endpoint){
+    try{
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), CONFIG.LINK_CHECK_TIMEOUT_MS);
+      const res = await fetch(endpoint, {signal: ctrl.signal}); // من غير no-cors عشان نقدر نقرا الـ status
+      clearTimeout(timer);
+      return { status: res.ok ? "ok" : "dead", method: "content" };
+    }catch(e){
+      // لو الـ oEmbed نفسه فشل (شبكة/تايم أوت)، نرجع للفحص العادي كـ fallback
+    }
+  }
+
+  try{
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=>ctrl.abort(), CONFIG.LINK_CHECK_TIMEOUT_MS);
+    await fetch(link, {mode:"no-cors", signal: ctrl.signal});
+    clearTimeout(timer);
+    return { status: "ok", method: "network" };
+  }catch(e){
+    return { status: "dead", method: "network" };
+  }
+}
+
+async function runHealthCheck({ label, icon, field, cache, storageKey, freshMs, concurrency, checkOne, setBtnText }){
+  const now = Date.now();
+  const uniqueUrls = [...new Set(items.map(it=>it[field]).filter(Boolean))];
+  const toCheck = uniqueUrls.filter(url=>{
+    const key = normalizeLink(url);
+    const cached = cache[key];
+    return !cached || (now - cached.ts) > freshMs;
+  });
+
+  let done = 0;
+  const total = toCheck.length;
+  let idx = 0;
+
+  async function worker(){
+    while(idx < toCheck.length){
+      const url = toCheck[idx++];
+      const key = normalizeLink(url);
+      const result = await checkOne(url);
+      cache[key] = typeof result === "object" ? { ...result, ts: Date.now() } : { status: result, ts: Date.now() };
+      done++;
+      setBtnText(`${icon} Checking ${label}… ${done}/${total}`);
+    }
+  }
+
+  if(total){
+    await Promise.all(Array.from({length: Math.min(concurrency, total)}, worker));
+    try{ localStorage.setItem(storageKey, JSON.stringify(cache)); }catch{}
+  }
+
+  const deadCount = Object.values(cache).filter(v=>v.status==="dead").length;
+  return { checked: total, deadCount };
+}
+
+// بنحمّل كل صورة في Image() جوه الذاكرة (من غير ما تتحط في الصفحة)؛ لو حصل onload
+// يبقى الصورة شغالة، ولو حصل onerror أو خلصت المهلة من غير رد يبقى بايظة
+function checkOneImage(url){
+  return new Promise(resolve=>{
+    let done = false;
+    const img = new Image();
+    const timer = setTimeout(()=>{
+      if(!done){ done = true; resolve("dead"); }
+    }, CONFIG.IMAGE_CHECK_TIMEOUT_MS);
+    img.onload = () => { if(!done){ done = true; clearTimeout(timer); resolve("ok"); } };
+    img.onerror = () => { if(!done){ done = true; clearTimeout(timer); resolve("dead"); } };
+    img.src = url;
+  });
+}
+
+// فحص لينكات الفيديو بنفس منطق فحص اللينكات العادية (fetch no-cors)
+async function checkOneVideo(url){
+  return checkOneLink(url);
+}
+
+// ====== زرار واحد بيراجع اللينكات، لينكات الصور، ولينكات الفيديو مع بعض ======
+async function checkAllHealth(force=false){
+  const btn = document.getElementById("checkAllBtn");
+  btn.disabled = true;
+  const setBtnText = t => btn.textContent = t;
+
+  const linkResult = await runHealthCheck({
+    label:"links", icon:"🔗", field:"link", cache:linkStatusCache, storageKey:"ziLinkStatusCache",
+    freshMs: force?0:CONFIG.LINK_CHECK_FRESH_MS, concurrency:CONFIG.LINK_CHECK_CONCURRENCY,
+    checkOne:checkOneLink, setBtnText
+  });
+  const vidResult = await runHealthCheck({
+    label:"videos", icon:"🎥", field:"vid", cache:videoStatusCache, storageKey:"ziVideoStatusCache",
+    freshMs: force?0:CONFIG.VIDEO_CHECK_FRESH_MS, concurrency:CONFIG.VIDEO_CHECK_CONCURRENCY,
+    checkOne:checkOneVideo, setBtnText
+  });
+  const imgResult = await runHealthCheck({
+    label:"images", icon:"🖼️", field:"image", cache:imageStatusCache, storageKey:"ziImageStatusCache",
+    freshMs: force?0:CONFIG.IMAGE_CHECK_FRESH_MS, concurrency:CONFIG.IMAGE_CHECK_CONCURRENCY,
+    checkOne:checkOneImage, setBtnText
+  });
+
+  btn.disabled = false;
+  btn.textContent = "🔗 Check Links & Media";
+
+  const totalChecked = linkResult.checked + vidResult.checked + imgResult.checked;
+  if(!totalChecked){
+    setStatus("Everything was checked recently — nothing new to check.", true);
+  } else {
+    setStatus(
+      `Checked ${totalChecked} item(s). Dead links: ${linkResult.deadCount} · Dead videos: ${vidResult.deadCount} · Broken images: ${imgResult.deadCount}`,
+      true
+    );
+  }
+  setTimeout(()=>setStatus("",false), 5000);
+
+  applyFilters(); // إعادة رسم الشبكة عشان العلامات الجديدة تظهر
+}
+
+document.getElementById("checkAllBtn").onclick = () => checkAllHealth(false);
+
+window.addEventListener("scroll", () => {
+  if(loadingMore) return;
+  if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 300){
+    loadingMore = true;
+    page++;
+    renderPartial(filteredCache);
+    setTimeout(()=>loadingMore=false, 200);
+  }
+});
+
+// ====== Settings ======
+function parseSheetUrl(u){
+  u = (u||"").trim();
+  let id = "", gid = "";
+  const m = u.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if(m) id = m[1];
+  else if(/^[a-zA-Z0-9-_]{25,}$/.test(u)) id = u; // ID لوحده
+  const g = u.match(/[#?&]gid=(\d+)/);
+  if(g) gid = g[1];
+  return { id, gid };
+}
+const setEl = {
+  overlay: document.getElementById("settingsOverlay"),
+  url: document.getElementById("setSheetUrl"),
+  name: document.getElementById("setSheetName"),
+  parsed: document.getElementById("setSheetParsed"),
+  endpoint: document.getElementById("setEndpoint"),
+  pass: document.getElementById("setPassword"),
+  msg: document.getElementById("setMsg"),
+};
+function setMsg(t, bad){ setEl.msg.textContent = t; setEl.msg.style.color = bad ? "#ff8080" : "#9dff9d"; }
+function showParsed(){
+  const p = parseSheetUrl(setEl.url.value);
+  if(!setEl.url.value.trim()){ setEl.parsed.textContent = ""; return p; }
+  setEl.parsed.classList.toggle("bad", !p.id);
+  setEl.parsed.textContent = p.id ? `ID: ${p.id}${p.gid ? "  ·  gid: "+p.gid : "  ·  (no gid — will use tab name)"}` : "مش لاقي ID للشيت في اللينك ده";
+  return p;
+}
+setEl.url.addEventListener("input", showParsed);
+
+function sheetUrlFromConfig(){
+  if(!CONFIG.SHEET_ID) return "";
+  return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/edit` + (CONFIG.SHEET_GID ? `#gid=${CONFIG.SHEET_GID}` : "");
+}
+function openSettings(){
+  setEl.url.value = sheetUrlFromConfig();
+  setEl.name.value = CONFIG.SHEET_NAME || "List";
+  setEl.endpoint.value = CONFIG.EDIT_ENDPOINT || "";
+  setEl.pass.value = CONFIG.EDIT_PASSWORD || "";
+  setMsg("", false); showParsed();
+  setEl.overlay.classList.add("show");
+}
+function readSettingsForm(){
+  const p = parseSheetUrl(setEl.url.value);
+  return {
+    SHEET_ID: p.id, SHEET_GID: p.gid,
+    SHEET_NAME: setEl.name.value.trim() || "List",
+    EDIT_ENDPOINT: setEl.endpoint.value.trim(),
+    EDIT_PASSWORD: setEl.pass.value,
+  };
+}
+document.getElementById("settingsBtn").onclick = openSettings;
+document.getElementById("setCancelBtn").onclick = () => setEl.overlay.classList.remove("show");
+setEl.overlay.addEventListener("click", e => { if(e.target === setEl.overlay) setEl.overlay.classList.remove("show"); });
+
+document.getElementById("setSaveBtn").onclick = async () => {
+  const s = readSettingsForm();
+  if(setEl.url.value.trim() && !s.SHEET_ID){ setMsg("Sheet link isn't valid.", true); return; }
+  if(s.EDIT_ENDPOINT && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(s.EDIT_ENDPOINT)){
+    setMsg("Endpoint should look like https://script.google.com/macros/s/…/exec", true); return;
+  }
+  const sheetChanged = s.SHEET_ID !== CONFIG.SHEET_ID || s.SHEET_GID !== CONFIG.SHEET_GID;
+  persistSettings(s);
+  Object.assign(CONFIG, s);
+  editUnlocked = false;
+  setEl.overlay.classList.remove("show");
+  if(sheetChanged){ try{ localStorage.removeItem(ITEMS_CACHE_KEY); }catch{} }
+  await load();
+};
+
+document.getElementById("setResetBtn").onclick = () => {
+  if(!confirm("Clear all saved settings on this device?")) return;
+  localStorage.removeItem(SETTINGS_KEY);
+  localStorage.removeItem(ITEMS_CACHE_KEY);
+  Object.assign(CONFIG, SETTINGS_DEFAULTS);
+  openSettings(); load();
+};
+
+document.getElementById("setTestBtn").onclick = async () => {
+  const s = readSettingsForm();
+  if(!s.SHEET_ID){ setMsg("Paste the sheet link first.", true); return; }
+  setMsg("Testing…", false);
+  const backup = { SHEET_ID:CONFIG.SHEET_ID, SHEET_GID:CONFIG.SHEET_GID, SHEET_NAME:CONFIG.SHEET_NAME };
+  Object.assign(CONFIG, { SHEET_ID:s.SHEET_ID, SHEET_GID:s.SHEET_GID, SHEET_NAME:s.SHEET_NAME });
+  try{
+    const json = await loadGVizJSONP();
+    if(!json || !json.table) throw new Error("Sheet isn't readable (is it shared as 'Anyone with the link'?)");
+    const n = toItemsFromGViz(json).length;
+    const cols = (json.table.cols||[]).map(c=>(c.label||"").trim().toLowerCase());
+    const need = ["title","link","image"].filter(c => !cols.includes(c));
+    setMsg(`OK ✅ ${n} card(s) found.` + (need.length ? ` Missing columns: ${need.join(", ")}` : ""), need.length > 0);
+  }catch(e){
+    setMsg("Failed: " + (e.message || e), true);
+  }finally{
+    Object.assign(CONFIG, backup);
+  }
+};
+
+document.getElementById("setShareBtn").onclick = async () => {
+  const s = readSettingsForm();
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(s))));
+  const link = location.origin + location.pathname + "#cfg=" + encodeURIComponent(code);
+  try{ await navigator.clipboard.writeText(link); setMsg("Setup link copied ✅ — it contains your endpoint/password, keep it private.", false); }
+  catch{ prompt("Copy this setup link:", link); }
+};
+
+// ====== Share target: بديل الإضافة على الموبايل (Share → Zi_LINK) ======
+(function handleShareTarget(){
+  const q = new URLSearchParams(location.search);
+  if(!(q.has("url") || q.has("text") || q.has("title"))) return;
+  let title = q.get("title") || "";
+  let link = q.get("url") || "";
+  const text = q.get("text") || "";
+  if(!link){ const m = text.match(/https?:\/\/\S+/); if(m) link = m[0]; }
+  if(!title && text) title = text.replace(/https?:\/\/\S+/g, "").trim();
+  if(q.has("add")) window.__fromBm = true;
+  history.replaceState(null, "", location.pathname);
+
+  let image = "", vid = "";
+  const yt = link.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if(yt){ image = `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg`; vid = link; }
+
+  setTimeout(() => {
+    if(!CONFIG.EDIT_ENDPOINT){ openSettings(); setMsg("Set the Add/Edit endpoint first, then share again.", true); return; }
+    openAddModal();
+    if(!isAddMode) return; // password cancelled
+    document.getElementById("editTitle").value = title;
+    document.getElementById("editLink").value = link;
+    document.getElementById("editImage").value = image;
+    document.getElementById("editVid").value = vid;
+    renderImageAltSearchLinks(title);
+    if(!window.__fromBm && link){
+      const plat = detectOembedPlatform(link), ep = plat ? oembedEndpoint(plat, link) : null;
+      if(ep){
+        if(!document.getElementById("editVid").value) document.getElementById("editVid").value = link;
+        fetch(ep).then(r => r.ok ? r.json() : null).then(j => {
+          if(!j) return;
+          const t = document.getElementById("editTitle"), im = document.getElementById("editImage");
+          if(j.title && (!t.value.trim() || t.value.trim() === link)){ t.value = j.title; renderImageAltSearchLinks(j.title); }
+          if(j.thumbnail_url && !im.value) im.value = j.thumbnail_url;
+        }).catch(() => {});
+      }
+    }
+    if(window.__fromBm && window.opener){ try{ window.opener.postMessage({type:"zi-ready"}, "*"); }catch{} }
+  }, 300);
+})();
+
+
+// ====== Page reader: نفس دالة الإضافة، بتتحط جوه الـ bookmarklet وبتشتغل في الصفحة المفتوحة ======
+function extractPageData() {
+  function abs(url) {
+    if (!url || typeof url !== "string") return null;
+    url = url.trim();
+    if (!url || url.startsWith("javascript:")) return null;
+    if (url.startsWith("data:") || url.startsWith("blob:")) return url;
+    try { return new URL(url, location.href).href; } catch { return null; }
+  }
+
+  // Collapses any run of whitespace/newlines (extra spaces from the page) into one space
+  function cleanText(s) {
+    return (s || "").replace(/\s+/g, " ").trim();
+  }
+
+  // Picks the highest-resolution candidate out of a srcset attribute
+  function bestFromSrcset(raw) {
+    if (!raw) return null;
+    const entries = raw.split(",").map(s => {
+      const parts = s.trim().split(/\s+/);
+      const w = parts.find(p => /^\d+w$/i.test(p));
+      const x = parts.find(p => /^\d+(\.\d+)?x$/i.test(p));
+      return { url: parts[0], score: w ? parseInt(w) : (x ? parseFloat(x) * 1000 : 0) };
+    }).filter(e => e.url);
+    entries.sort((a, b) => b.score - a.score);
+    return entries[0]?.url || null;
+  }
+
+  function bgUrlFrom(cssValue) {
+    if (!cssValue || cssValue === "none") return null;
+    const m = cssValue.match(/url\(\s*(['"]?)(.*?)\1\s*\)/);
+    return m ? m[2] : null;
+  }
+
+  const metaTitle =
+    document.querySelector('meta[property="og:title"]')?.content ||
+    document.querySelector('meta[name="twitter:title"]')?.content ||
+    document.title || "";
+
+  const LAZY_IMG_ATTRS = [
+    "data-src", "data-lazy-src", "data-original", "data-lazy", "data-echo",
+    "data-hi-res", "data-hires", "data-large", "data-large-image",
+    "data-zoom-src", "data-zoom", "data-full", "data-full-image", "data-2x"
+  ];
+
+  const IMG_CAP = 60;
+  const VID_CAP = 30;
+  // Hard ceiling on how many elements we'll run getComputedStyle() on — this
+  // is the expensive part on huge/complex pages, since it can force a full
+  // style recalculation across the whole DOM.
+  const BG_SCAN_CAP = 3000;
+  const IMG_SCAN_CAP = 2500;
+
+  // ---- Smarter image ranking ----
+  // Instead of a flat "big enough → in" cutoff, every candidate gets a score
+  // and we keep the highest-scoring ones. Layout size (not just the file's
+  // natural resolution) is the main signal — a 2000px photo shrunk to a
+  // 40px avatar shouldn't outrank a 400px photo shown at full size — and
+  // that's adjusted up for images that sit in the actual article/content
+  // area, and down for images that are UI chrome (nav/header/footer/ads),
+  // oddly-shaped strips (banners/dividers), or named like logos, icons,
+  // avatars, or tracking pixels.
+  const CHROME_SELECTOR = "header, nav, footer, aside, [role='banner'], [role='navigation'], [role='contentinfo'], .sidebar, .ad, .ads, .advertisement, .cookie, .cookie-banner, .popup, .modal, .newsletter, .subscribe";
+  const MAIN_SELECTOR = "main, article, [role='main'], figure, .content, .post, .entry, .article-body";
+  const JUNK_NAME_RE = /\b(sprite|spacer|pixel|blank|1x1|transparent|placeholder|lazyload|loader|loading)\b/i;
+  const DECOR_NAME_RE = /\b(logo|icon|avatar|badge|emoji|social|favicon)\b/i;
+  const MIN_AREA = 100 * 100;
+
+  const imgScores = new Map(); // url -> best score seen so far
+
+  function scoreImage(url, w, h, el) {
+    if (JUNK_NAME_RE.test(url)) return null; // tracking pixels / spacers: never show these
+    let score = Math.min(w * h, 4000000); // area is the main signal, capped so one huge image can't swamp everything else
+    const aspect = (w && h) ? w / h : 1;
+    if (aspect > 6 || aspect < 0.15) score -= 50000; // thin banner/divider strips
+    if (DECOR_NAME_RE.test(url)) score -= 60000;
+    if (el && el.closest) {
+      try {
+        if (el.closest(CHROME_SELECTOR)) score -= 80000;
+        if (el.closest(MAIN_SELECTOR)) score += 40000;
+        const alt = (el.getAttribute && el.getAttribute("alt")) || "";
+        if (alt.trim().length > 15) score += 8000;
+        if (el.closest("figure")?.querySelector("figcaption")) score += 6000;
+      } catch {}
+    }
+    if (w * h < MIN_AREA && score < 40000) return null; // drop tiny generic images unless something strongly marks them as content
+    return score;
+  }
+
+  function considerImg(url, w, h, el) {
+    const u = abs(url);
+    if (!u) return;
+    const score = scoreImage(u, w, h, el);
+    if (score === null) return;
+    const prev = imgScores.get(u);
+    if (prev === undefined || score > prev) imgScores.set(u, score);
+  }
+
+  const metaImg =
+    document.querySelector('meta[property="og:image"]')?.content ||
+    document.querySelector('meta[name="twitter:image"]')?.content;
+
+  // <img>: real src, srcset (best candidate), and common lazy-load attributes.
+  // Falls back to the rendered box size when naturalWidth isn't available yet
+  // (still lazy-loading), so images aren't unfairly dropped just for that.
+  const allImgs = document.querySelectorAll("img");
+  const imgScanLimit = Math.min(allImgs.length, IMG_SCAN_CAP);
+  for (let i = 0; i < imgScanLimit; i++) {
+    const img = allImgs[i];
+    const rect = img.getBoundingClientRect();
+    const w = img.naturalWidth || rect.width || img.width || 0;
+    const h = img.naturalHeight || rect.height || img.height || 0;
+    if (img.currentSrc) considerImg(img.currentSrc, w, h, img);
+    else if (img.src) considerImg(img.src, w, h, img);
+    const bestSrcset = bestFromSrcset(img.getAttribute("srcset"));
+    if (bestSrcset) considerImg(bestSrcset, w, h, img);
+    LAZY_IMG_ATTRS.forEach(a => {
+      const v = img.getAttribute(a);
+      if (v) considerImg(v, w, h, img);
+    });
+  }
+
+  // <picture><source srcset> — score using the sibling <img>'s box, since the
+  // <source> element itself has no rendered size of its own.
+  const pictureSources = document.querySelectorAll("picture source");
+  for (let i = 0; i < pictureSources.length; i++) {
+    const source = pictureSources[i];
+    const sibImg = source.closest("picture")?.querySelector("img");
+    const rect = sibImg ? sibImg.getBoundingClientRect() : null;
+    const w = sibImg?.naturalWidth || rect?.width || 0;
+    const h = sibImg?.naturalHeight || rect?.height || 0;
+    const best = bestFromSrcset(source.getAttribute("srcset") || source.getAttribute("data-srcset"));
+    if (best) considerImg(best, w, h, sibImg || source);
+  }
+
+  // CSS background-image on elements likely to carry one (banners/heroes/cards).
+  // Skipping <script>, <style>, inline text tags etc. cuts the scan down a lot
+  // on real pages without missing much, and we still cap the scan itself.
+  const bgCandidates = document.querySelectorAll("div, section, header, footer, a, li, figure, article, aside, span, button");
+  const bgScanLimit = Math.min(bgCandidates.length, BG_SCAN_CAP);
+  for (let i = 0; i < bgScanLimit; i++) {
+    const el = bgCandidates[i];
+    try {
+      const url = bgUrlFrom(getComputedStyle(el).backgroundImage);
+      if (!url) continue;
+      const rect = el.getBoundingClientRect();
+      considerImg(url, rect.width, rect.height, el);
+    } catch {}
+  }
+
+  // Final order: the page's own declared share image first (it's a deliberate
+  // editorial choice, so it's trusted outright), then everything else ranked
+  // by score, highest first.
+  const images = [];
+  const seenImg = new Set();
+  if (metaImg) {
+    const u = abs(metaImg);
+    if (u) { images.push(u); seenImg.add(u); imgScores.delete(u); }
+  }
+  const ranked = [...imgScores.entries()].sort((a, b) => b[1] - a[1]).map(([u]) => u);
+  for (const u of ranked) {
+    if (seenImg.has(u)) continue;
+    seenImg.add(u);
+    images.push(u);
+  }
+
+  // Videos: <video> tags, direct file links, and known video-platform iframes
+  const seenVid = new Set();
+  const videos = [];
+  function pushVid(url) {
+    const u = abs(url);
+    if (!u || seenVid.has(u) || u.startsWith("blob:")) return;
+    seenVid.add(u);
+    videos.push(u);
+  }
+  const allVideoTags = document.querySelectorAll("video");
+  for (let i = 0; i < allVideoTags.length && videos.length < VID_CAP; i++) {
+    const v = allVideoTags[i];
+    if (v.currentSrc) pushVid(v.currentSrc);
+    else if (v.src) pushVid(v.src);
+    v.querySelectorAll("source").forEach(s => { if (s.src) pushVid(s.src); });
+    ["data-src", "data-lazy-src"].forEach(a => { const val = v.getAttribute(a); if (val) pushVid(val); });
+  }
+  const linkTags = document.querySelectorAll('a[href]');
+  for (let i = 0; i < linkTags.length && videos.length < VID_CAP; i++) {
+    const href = linkTags[i].href;
+    if (/\.(mp4|webm|mov|mkv|m3u8)(\?|$)/i.test(href)) pushVid(href);
+  }
+  const videoHostPattern = /youtube\.com\/(embed|watch)|youtu\.be|player\.vimeo\.com|vimeo\.com\/\d+|tiktok\.com|dailymotion\.com\/(embed|video)|facebook\.com\/plugins\/video/i;
+  const iframeTags = document.querySelectorAll("iframe");
+  for (let i = 0; i < iframeTags.length && videos.length < VID_CAP; i++) {
+    const src = iframeTags[i].src;
+    if (src && videoHostPattern.test(src)) pushVid(src);
+  }
+
+  // Visible body text: every distinct piece of text a human would actually
+  // see — plain paragraphs, list items, link labels, buttons, whatever —
+  // not just a fixed set of tags. Walks every text node, keeps the ones
+  // whose immediate parent is on-screen, and groups by that parent so a
+  // link's own text (or any other element's own text) is captured once,
+  // without re-grabbing the same words again from an ancestor container.
+  const TEXT_CAP = 150;
+  const NODE_VISIT_CAP = 8000; // hard ceiling so a huge page can't hang the scan
+  const seenText = new Set();
+  const texts = [];
+  function isVisible(el) {
+    const style = getComputedStyle(el);
+    if (style.display === "none" || style.visibility === "hidden" || parseFloat(style.opacity) === 0) return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+  const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "TEXTAREA", "INPUT", "SELECT", "OPTION", "SVG", "CANVAS", "IFRAME"]);
+  const groups = new Map(); // element -> its own direct text-node chunks
+  const order = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node, visited = 0;
+  while ((node = walker.nextNode()) && visited < NODE_VISIT_CAP) {
+    visited++;
+    const raw = node.nodeValue;
+    if (!raw || !raw.trim()) continue;
+    const parent = node.parentElement;
+    if (!parent || SKIP_TAGS.has(parent.tagName)) continue;
+    if (parent.closest("script, style, noscript, template")) continue;
+    if (!isVisible(parent)) continue;
+    if (!groups.has(parent)) { groups.set(parent, []); order.push(parent); }
+    groups.get(parent).push(raw);
+  }
+  for (let i = 0; i < order.length && texts.length < TEXT_CAP; i++) {
+    let text = cleanText(groups.get(order[i]).join(" "));
+    if (text.length < 2) continue;
+    if (!/[\p{L}\p{N}]/u.test(text)) continue; // skip pure punctuation/symbol fragments
+    if (text.length > 500) text = text.slice(0, 500) + "…";
+    const key = text.toLowerCase();
+    if (seenText.has(key)) continue;
+    seenText.add(key);
+    texts.push(text);
+  }
+
+  return {
+    title: cleanText(metaTitle),
+    link: location.href,
+    images: images.slice(0, IMG_CAP),
+    videos: videos.slice(0, VID_CAP),
+    texts: texts.slice(0, TEXT_CAP)
+  };
+}
+
+// ====== Page picker (images / videos / text) inside the Add modal ======
+const pp = {
+  box: document.getElementById("pagePicker"),
+  tabs: [...document.querySelectorAll("#pagePicker .pp-tabs button")],
+  img: document.getElementById("ppImg"), vid: document.getElementById("ppVid"), txt: document.getElementById("ppTxt"),
+};
+function hidePagePicker(){
+  pp.box.style.display = "none";
+  pp.box.closest(".modal-box").classList.remove("wide");
+}
+function afterSaveClose(){
+  closeEditModal();
+  if(window.__fromBm){ setTimeout(() => { try{ window.close(); }catch{} }, 200); }
+}
+pp.tabs.forEach(b => b.onclick = () => {
+  pp.tabs.forEach(x => x.classList.toggle("on", x === b));
+  ["Img","Vid","Txt"].forEach(k => pp[k.toLowerCase()].style.display = (k === b.dataset.t) ? "" : "none");
+});
+function ytId(u){ const m = (u||"").match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/); return m ? m[1] : ""; }
+function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./,""); }catch{ return ""; } }
+
+function showPagePicker(d){
+  const $ = id => document.getElementById(id);
+  if(d.title) $("editTitle").value = d.title;
+  if(d.link)  $("editLink").value  = d.link;
+  renderImageAltSearchLinks($("editTitle").value);
+
+  // images
+  pp.img.innerHTML = "";
+  const imgs = Array.isArray(d.images) ? d.images : [];
+  $("ppImgN").textContent = `(${imgs.length})`;
+  if(!imgs.length) pp.img.innerHTML = '<div class="pp-empty">No suitable images found</div>';
+  imgs.forEach(url => {
+    const t = document.createElement("div"); t.className = "t"; t.dataset.url = url;
+    const im = document.createElement("img"); im.src = url; im.loading = "lazy"; im.referrerPolicy = "no-referrer";
+    im.onerror = () => t.remove();
+    t.appendChild(im);
+    t.onclick = () => {
+      const cur = $("editImage").value;
+      $("editImage").value = (cur === url) ? "" : url;
+      pp.img.querySelectorAll(".t").forEach(x => x.classList.toggle("sel", x.dataset.url === $("editImage").value));
+    };
+    pp.img.appendChild(t);
+  });
+
+  // videos
+  pp.vid.innerHTML = "";
+  const vids = Array.isArray(d.videos) ? d.videos : [];
+  $("ppVidN").textContent = `(${vids.length})`;
+  if(!vids.length) pp.vid.innerHTML = '<div class="pp-empty">No videos found</div>';
+  vids.forEach(url => {
+    const t = document.createElement("div"); t.className = "t"; t.dataset.url = url; t.title = url;
+    const id = ytId(url);
+    if(id){
+      const im = document.createElement("img"); im.src = `https://img.youtube.com/vi/${id}/hqdefault.jpg`; im.referrerPolicy = "no-referrer";
+      t.appendChild(im);
+    } else {
+      const ic = document.createElement("div"); ic.className = "ico";
+      ic.textContent = "🎬";
+      const sm = document.createElement("small"); sm.textContent = hostOf(url);
+      ic.appendChild(sm); t.appendChild(ic);
+    }
+    t.onclick = () => {
+      const cur = $("editVid").value;
+      $("editVid").value = (cur === url) ? "" : url;
+      pp.vid.querySelectorAll(".t").forEach(x => x.classList.toggle("sel", x.dataset.url === $("editVid").value));
+    };
+    pp.vid.appendChild(t);
+  });
+
+  // texts -> Note (click to add/remove, same as the extension)
+  pp.txt.innerHTML = "";
+  const texts = Array.isArray(d.texts) ? d.texts : [];
+  $("ppTxtN").textContent = `(${texts.length})`;
+  const picked = [];
+  if(!texts.length) pp.txt.innerHTML = '<div class="pp-empty">No text found</div>';
+  texts.forEach(text => {
+    const x = document.createElement("div"); x.className = "x"; x.textContent = text;
+    x.onclick = () => {
+      const i = picked.indexOf(text);
+      if(i === -1) picked.push(text); else picked.splice(i, 1);
+      $("editNote").value = picked.join("  |  ");
+      x.classList.toggle("sel", i === -1);
+    };
+    pp.txt.appendChild(x);
+  });
+
+  pp.tabs[0].click();
+  pp.box.style.display = "block";
+  pp.box.closest(".modal-box").classList.add("wide");
+}
+
+// البيانات بتيجي من الـ bookmarklet بس من النافذة اللي فتحتنا (window.opener)
+window.addEventListener("message", e => {
+  if(!window.opener || e.source !== window.opener) return;
+  const m = e.data;
+  if(!m || m.type !== "zi-page" || !m.data || typeof m.data !== "object") return;
+  if(!document.getElementById("editOverlay").classList.contains("show")) return;
+  showPagePicker(m.data);
+});
+
+// ====== Bookmarklet ======
+function buildBookmarklet(){
+  const app = location.origin + location.pathname;
+  const code = `(function(){
+var d=(${extractPageData.toString()})();
+var A=${JSON.stringify(app)},O=${JSON.stringify(location.origin)};
+var q='?add=1&title='+encodeURIComponent(d.title||'')+'&url='+encodeURIComponent(d.link||'');
+var w=window.open(A+q,'ziLinkAdd'); if(!w) return;
+function h(e){ if(e.origin!==O||e.source!==w) return;
+  if(e.data&&e.data.type==='zi-ready'){ w.postMessage({type:'zi-page',data:d},O); window.removeEventListener('message',h); } }
+window.addEventListener('message',h);
+setTimeout(function(){ window.removeEventListener('message',h); },20000);
+})();`;
+  return "javascript:" + encodeURIComponent(code);
+}
+(function setupBookmarklet(){
+  const a = document.getElementById("bmLink");
+  a.href = buildBookmarklet();
+  a.addEventListener("click", e => { e.preventDefault(); alert("Drag this button to your bookmarks bar, then click it on any page."); });
+  document.getElementById("bmCopyBtn").onclick = async () => {
+    try{ await navigator.clipboard.writeText(decodeURIComponent(a.href.slice(11))); setMsg("Code copied — create a bookmark and paste it as the URL (with javascript: in front).", false); }
+    catch{ prompt("Copy this:", a.href); }
+  };
+})();
+
+// ====== Service worker ======
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(console.error));
+}
+</script>
+</body>
+</html>
