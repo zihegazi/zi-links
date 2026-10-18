@@ -2,453 +2,420 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#000000">
 <title>Zi_LINK — Add</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
 <style>
-  :root {
-    --bg: #000;
-    --text: #eee;
-    --muted: #999;
-    --accent: #999;
-    --btn: #222;
-    --btn-hover: #444;
-  }
-
-  * { box-sizing: border-box; }
-
-  html, body { height: 100%; }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* the two panels below scroll internally, the page itself doesn't */
-  }
-
-  .layout {
-    flex: 1;
-    display: flex;
-    min-height: 0; /* required so children can scroll instead of overflowing the page */
-  }
-
-  .panel {
-    color: var(--text);
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .panel h3 {
-    font-size: 13px;
-    margin: 0 0 12px;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-  }
-
-  /* ====== Form (right) ====== */
-  #formBox {
-    width: 420px;
-    flex-shrink: 0;
-    background: #111;
-    border-left: 1px solid #262626;
-    padding: 18px 20px;
-    overflow-y: auto;
-  }
-
-  .modal-field { margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
-  .modal-field label { font-size: 12px; color: var(--muted); }
-  .modal-field input,
-  .modal-field textarea {
-    padding: 7px 9px; border-radius: 8px; border: 1px solid #333;
-    background: var(--btn); color: var(--text); font-size: 13px;
-    font-family: inherit;
-  }
-  .modal-field textarea {
-    resize: both;
-    width: 100%;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .modal-field textarea::-webkit-scrollbar { display: none; }
-
-  /* ====== Media box: images + videos merged (left) ====== */
-  #mediaBox {
-    flex: 1;
-    min-width: 0;
-    display: flex; flex-direction: column; gap: 6px;
-    min-height: 0;
-    padding: 16px 20px;
-  }
-  .media-divider {
-    border: none; border-top: 1px solid #2a2a2a;
-    margin: 2px 0; flex-shrink: 0;
-  }
-  .picker-status { font-size: 12px; color: var(--muted); margin: -6px 0 2px; flex-shrink: 0; }
-
-  .scroll-wrap {
-    position: relative;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .scroll-wrap.images { flex: 1; }
-
-  .scroll-hint {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    color: var(--muted);
-    background: #111;
-    padding: 1px 8px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity .15s;
-    z-index: 2;
-  }
-  .scroll-hint.top { top: -1px; border-radius: 0 0 8px 8px; }
-  .scroll-hint.bottom { bottom: -1px; border-radius: 8px 8px 0 0; }
-  .scroll-hint.visible { opacity: 1; }
-
-  /* horizontal-scroll wrapper + hints, used by the single-row video strip */
-  .scroll-wrap-h { position: relative; flex-shrink: 0; }
-  .scroll-hint-h {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 16px;
-    color: var(--muted);
-    background: #111;
-    padding: 2px 4px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity .15s;
-    z-index: 2;
-    border-radius: 6px;
-  }
-  .scroll-hint-h.left { left: -1px; border-radius: 0 8px 8px 0; }
-  .scroll-hint-h.right { right: -1px; border-radius: 8px 0 0 8px; }
-  .scroll-hint-h.visible { opacity: 1; }
-
-  /* grid used for the image thumbnails */
-  .thumb-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: min-content;
-    gap: 8px;
-    padding: 4px;
-    border: 1px solid #222;
-    border-radius: 8px;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    align-content: flex-start;
-  }
-  .thumb-grid::-webkit-scrollbar { display: none; }
-
-  /* single scrollable row used for video thumbnails */
-  .video-row {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    padding: 4px;
-    border: 1px solid #222;
-    border-radius: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .video-row::-webkit-scrollbar { display: none; }
-  .video-row .thumb-opt {
-    width: 150px;
-    flex-shrink: 0;
-  }
-
-  .thumb-opt {
-    position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 8px;
-    overflow: hidden; border: 2px solid #333; cursor: pointer; background: #1a1a1a;
-  }
-  .thumb-opt img,
-  .thumb-opt canvas,
-  .thumb-opt video {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
-  .thumb-opt:hover { border-color: #7fd0ff; }
-  .thumb-opt.selected { border-color: #9dff9d; box-shadow: 0 0 0 1px #9dff9d inset; }
-  .thumb-opt.selected::after {
-    content: "✓"; position: absolute; top: 2px; left: 2px;
-    background: #2a6f3f; color: #d8ffd8; font-size: 11px;
-    width: 16px; height: 16px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 3;
-  }
-
-  /* fallback tile when a video can't be thumbnailed (tiktok, fb, unknown host, error, etc.) */
-  .icon-fallback {
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 4px; padding: 6px; text-align: center;
-    box-sizing: border-box;
-  }
-  .icon-fallback .icon { font-size: 26px; }
-  .icon-fallback .host { font-size: 9px; color: var(--muted); word-break: break-all; line-height: 1.2; }
-
-  .thumb-opt .play-badge {
-    position: absolute; bottom: 3px; right: 3px; font-size: 12px;
-    background: rgba(0,0,0,0.55); border-radius: 50%; width: 18px; height: 18px;
-    display: flex; align-items: center; justify-content: center; z-index: 2;
-  }
-
-  /* ====== Text snippets (click to drop into Notes) ====== */
-  .text-list {
-    display: flex;
-    flex-direction: column;
-    padding: 4px 2px;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .text-list::-webkit-scrollbar { display: none; }
-  .text-opt {
-    font-size: 13.5px;
-    line-height: 1.4;
-    padding: 4px 6px;
-    color: #f2f2f2;
-    cursor: pointer;
-    border-bottom: 1px solid #262626;
-    white-space: normal;
-  }
-  .text-opt:last-child { border-bottom: none; }
-  .text-opt:hover { background: rgba(127,208,255,0.08); }
-  .text-opt.selected { background: rgba(157,255,157,0.10); border-bottom-color: #2a6f3f; }
-
-  /* ====== Collapsible Videos / Text sections ====== */
-  .collapsible-section {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    gap: 4px;
-  }
-  .collapsible-section.expanded { min-height: 0; }
-  #videoSection.expanded { flex-shrink: 0; }
-  #imagesSection.expanded { flex: 1; min-height: 150px; }
-  #textSection.expanded { flex: 1; min-height: 100px; }
-  .section-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    text-align: left;
-    background: #141414;
-    border: 1px solid #262626;
-    border-radius: 6px;
-    padding: 4px 8px;
-    color: var(--text);
-    font-size: 11px;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .section-toggle:hover { border-color: #7fd0ff; }
-  .toggle-arrow { font-size: 10px; color: var(--muted); width: 10px; }
-  .toggle-label { font-weight: bold; }
-  .toggle-count { margin-left: auto; color: var(--muted); font-size: 11px; }
-  .section-body {
-    display: none;
-    flex-direction: column;
-    min-height: 0;
-  }
-  .collapsible-section.expanded .section-body {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-  }
-  #videoSection.expanded .section-body { flex: none; }
-
-  .empty-note {
-    grid-column: 1 / -1;
-    font-size: 12px; color: var(--muted); font-style: italic;
-    text-align: center; padding: 10px 0;
-  }
-
-  /* ====== Type chips ====== */
-  .modal-chip-add-row { display: flex; gap: 6px; margin-top: 2px; }
-  .modal-chip-add-row input {
-    flex: 1; padding: 5px 8px; border-radius: 8px; border: 1px solid #333;
-    background: var(--btn); color: var(--text); font-size: 12px;
-  }
-  .modal-chip-add-row button {
-    padding: 5px 10px; border-radius: 8px; border: 1px solid #444;
-    background: var(--btn); color: var(--text); font-size: 12px;
-    cursor: pointer; white-space: nowrap;
-  }
-  .modal-chip-add-row button:hover { border-color: #7fd0ff; }
-
-  .modal-chip-picker { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 2px; }
-  .modal-chip {
-    font-size: 12px; padding: 3px 10px; border-radius: 12px;
-    border: 1px solid #444; background: var(--btn); color: var(--muted);
-    cursor: pointer; user-select: none;
-  }
-  .modal-chip:hover { border-color: #7fd0ff; }
-  .modal-chip.selected {
-    background: rgba(157,255,157,0.15); border-color: #9dff9d;
-    color: #d8ffd8; font-weight: bold;
-  }
-  .modal-chip-empty { font-size: 12px; color: var(--muted); font-style: italic; }
-
-  /* ====== Stars ====== */
-  .modal-star-picker { display: flex; gap: 4px; font-size: 22px; line-height: 1; }
-  .modal-star { cursor: pointer; color: #444; }
-  .modal-star.filled { color: #ffd75e; }
-
-  #rateField { margin-bottom: 0; }
-  .modal-msg { font-size: 12px; min-height: 14px; margin-top: 4px; }
-
-  .modal-actions {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 8px; margin-top: 14px;
-  }
-  .modal-actions-right { display: flex; gap: 8px; margin-left: auto; }
-  .modal-actions button {
-    padding: 7px 14px; border-radius: 10px; border: 1px solid #333;
-    background: var(--btn); color: var(--text); font-size: 13px; cursor: pointer;
-  }
-  .modal-actions button:hover { background: var(--btn-hover); }
-  .clear-btn { background: transparent; border: 1px solid #555; color: var(--muted); }
-  .clear-btn:hover { border-color: #ff8080; color: #ff8080; }
-  .save-btn { background: #2a6f3f; border-color: #2a6f3f; }
-  .save-btn:hover { background: #348a4e; }
-
-  @media (max-width: 900px) {
-    body { overflow: auto; }
-    .layout { flex-direction: column; }
-    #formBox { width: 100%; border-left: none; border-top: 1px solid #262626; overflow-y: visible; }
-    #mediaBox { flex: none; }
-  }
-  .gear { background:transparent; border:1px solid #333; border-radius:8px; color:var(--muted); cursor:pointer; padding:1px 8px; font-size:13px; }
-  .gear:hover { border-color:#7fd0ff; }
+  :root { --bg:#000; --text:#eee; --muted:#999; --btn:#222; --blue:#7fd0ff; --green:#9dff9d; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,"Segoe UI",Roboto,Tahoma,Arial,sans-serif; }
+  body { min-height:100dvh; padding:max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:10px; }
+  h1 { margin:0; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .field { display:flex; flex-direction:column; gap:4px; }
+  label { font-size:12px; color:var(--muted); }
+  input[type=text], textarea { width:100%; padding:10px; border-radius:0; border:none; border-bottom:1px solid #3a3a3a; background:transparent; color:var(--text); font-size:16px; font-family:inherit; }
+  input:focus, textarea:focus { outline:none; border-bottom-color:var(--blue); }
+  textarea { resize:none; }
+  .btn { padding:9px 14px; border-radius:10px; border:1px solid #444; background:var(--btn); color:var(--text); font-size:14px; }
+  .links { font-size:12px; color:var(--muted); }
+  .links a { color:var(--blue); text-decoration:none; margin-right:10px; }
+  #picker { border:1px solid #222; border-radius:12px; padding:8px; }
+  .tabs { display:flex; gap:6px; margin-bottom:8px; align-items:center; }
+  .tabs button { padding:6px 12px; border-radius:10px; border:1px solid #333; background:var(--btn); color:var(--muted); font-size:13px; }
+  .tabs button.on { color:#d8ffd8; border-color:var(--green); }
+  #pstat { font-size:12px; color:var(--muted); min-height:14px; }
+  .grid, .texts { margin-top:6px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; max-height:260px; overflow-y:auto; }
+  .t { position:relative; aspect-ratio:1/1; border:2px solid #333; border-radius:8px; overflow:hidden; background:#1a1a1a; }
+  .t img { width:100%; height:100%; object-fit:cover; display:block; }
+  .t.sel { border-color:var(--green); }
+  .t.sel::after { content:"✓"; position:absolute; top:3px; right:3px; background:var(--green); color:#000; border-radius:50%; width:20px; height:20px; font-size:13px; font-weight:bold; display:flex; align-items:center; justify-content:center; }
+  .ico { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; font-size:24px; padding:4px; text-align:center; }
+  .ico small { font-size:9px; color:var(--muted); word-break:break-all; }
+  .texts { max-height:260px; overflow-y:auto; border:1px solid #222; border-radius:8px; }
+  .x { font-size:13px; line-height:1.4; padding:7px 8px; border-bottom:1px solid #262626; }
+  .x.sel { background:rgba(157,255,157,.12); }
+  .empty { grid-column:1/-1; font-size:12px; color:var(--muted); text-align:center; padding:12px; }
+  .preview { display:none; width:96px; height:96px; object-fit:cover; border-radius:10px; background:#111; margin-top:6px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; padding:4px 0; }
+  .chip { font-size:13px; padding:5px 12px; border-radius:14px; border:1px solid #444; background:var(--btn); color:var(--muted); user-select:none; }
+  .chip.sel { background:rgba(157,255,157,.15); border-color:var(--green); color:#d8ffd8; font-weight:bold; }
+  .addrow { display:flex; gap:8px; }
+  .addrow input { flex:1; }
+  .stars { display:flex; gap:6px; font-size:30px; line-height:1; }
+  .star { color:#444; } .star.on { color:#ffd75e; }
+  #msg { font-size:13px; min-height:18px; }
+  .bar { position:sticky; bottom:0; display:flex; gap:10px; padding:10px 0 2px; background:linear-gradient(transparent, #000 30%); margin-top:auto; }
+  .bar .btn { flex:1; padding:13px; font-size:15px; }
+  .save { background:#2a6f3f; border-color:#2a6f3f; }
+  .save:disabled { opacity:.6; }
+  #done { position:fixed; inset:0; background:#000; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:24px; z-index:5; }
+  #done b { font-size:20px; }
 </style>
 </head>
 <body>
-  <div class="layout">
+  <h1>Add to Zi_LINK</h1>
 
-    <!-- Media: images + videos -->
-    <div id="mediaBox" class="panel">
-      <h3>Media</h3>
+  <div id="pstat"></div>
 
-      <div id="imagesSection" class="collapsible-section expanded">
-        <button type="button" class="section-toggle" id="imagesToggleBtn">
-          <span class="toggle-arrow">▾</span>
-          <span class="toggle-label">Images</span>
-          <span class="toggle-count" id="imagesCount"></span>
-        </button>
-        <div class="section-body" id="imagesBody">
-          <div id="pickerStatusImg" class="picker-status"></div>
-          <div class="scroll-wrap images">
-            <span class="scroll-hint top">▲ more</span>
-            <div id="thumbGrid" class="thumb-grid">
-              <div class="empty-note">Looking for images…</div>
-            </div>
-            <span class="scroll-hint bottom">▼ more</span>
-          </div>
-        </div>
-      </div>
-
-      <hr id="mediaDivider" class="media-divider" style="display:none">
-
-      <div id="videoSection" class="collapsible-section" style="display:none">
-        <button type="button" class="section-toggle" id="videoToggleBtn">
-          <span class="toggle-arrow">▸</span>
-          <span class="toggle-label">Videos</span>
-          <span class="toggle-count" id="videoCount"></span>
-        </button>
-        <div class="section-body" id="videoBody">
-          <div id="pickerStatusVid" class="picker-status"></div>
-          <div class="scroll-wrap-h">
-            <span class="scroll-hint-h left">‹</span>
-            <div id="videoGrid" class="video-row"></div>
-            <span class="scroll-hint-h right">›</span>
-          </div>
-        </div>
-      </div>
-
-      <div id="textSection" class="collapsible-section" style="display:none">
-        <button type="button" class="section-toggle" id="textToggleBtn">
-          <span class="toggle-arrow">▸</span>
-          <span class="toggle-label">Text</span>
-          <span class="toggle-count" id="textCount"></span>
-        </button>
-        <div class="section-body" id="textBody">
-          <div id="pickerStatusText" class="picker-status"></div>
-          <div id="textList" class="text-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Add form -->
-    <div id="formBox" class="panel">
-      <h3 style="display:flex;justify-content:space-between;align-items:center">Add New Card <button type="button" id="openSettingsBtn" class="gear" title="Settings">⚙️</button></h3>
-
-      <div class="modal-field">
-        <label>Title</label>
-        <textarea id="fldTitle" rows="2"></textarea>
-      </div>
-
-      <div class="modal-field">
-        <label>Link</label>
-        <input id="fldLink" type="text"/>
-      </div>
-
-      <div class="modal-field">
-        <label>Image</label>
-        <input id="fldImage" type="text"/>
-      </div>
-
-      <div class="modal-field">
-        <label>Vid</label>
-        <input id="fldVid" type="text"/>
-      </div>
-
-      <div class="modal-field">
-        <label>Note</label>
-        <textarea id="fldNote" rows="2"></textarea>
-      </div>
-
-      <div class="modal-field">
-        <label>Type (pick any that apply)</label>
-        <div class="modal-chip-add-row">
-          <input type="text" id="typeNewInput" placeholder="Add new type…"/>
-          <button type="button" id="typeAddBtn">+ Add</button>
-        </div>
-        <div id="typeChips" class="modal-chip-picker">
-          <span class="modal-chip-empty">Loading…</span>
-        </div>
-      </div>
-
-      <div class="modal-field" id="rateField">
-        <label>Rate</label>
-        <div id="rateStars" class="modal-star-picker"></div>
-      </div>
-
-      <div class="modal-msg" id="msg"></div>
-
-      <div class="modal-actions">
-        <button id="clearBtn" type="button" class="clear-btn">Clear</button>
-        <div class="modal-actions-right">
-          <button id="cancelBtn" type="button">Cancel</button>
-          <button id="saveBtn" type="button" class="save-btn">Add</button>
-        </div>
-      </div>
-    </div>
-
+  <div class="field"><label>Title</label><textarea id="fTitle" rows="2"></textarea></div>
+  <div class="field"><label>Link</label><input id="fLink" type="text" inputmode="url" autocomplete="off"/></div>
+  <div class="field">
+    <label>Image <span id="nImg"></span></label>
+    <input id="fImage" type="text" inputmode="url" autocomplete="off"/>
+    <img id="preview" class="preview" alt=""/>
+    <div class="links"><a id="gImg" target="_blank" rel="noopener">Google images</a><a id="yImg" target="_blank" rel="noopener">Yandex images</a></div>
+    <div id="pImg" class="grid"></div>
+  </div>
+  <div class="field">
+    <label>Vid <span id="nVid"></span></label>
+    <input id="fVid" type="text" inputmode="url" autocomplete="off"/>
+    <div id="pVid" class="grid" style="display:none"></div>
+  </div>
+  <div class="field">
+    <label>Note <span id="nTxt"></span></label>
+    <textarea id="fNote" rows="2"></textarea>
+    <div id="pTxt" class="texts" style="display:none"></div>
   </div>
 
-  <script src="add.js"></script>
+  <div class="field">
+    <label>Type</label>
+    <div id="chips" class="chips"><span style="color:var(--muted);font-size:12px">Loading…</span></div>
+    <div class="addrow"><input id="newType" type="text" placeholder="Add new type…" autocomplete="off"/><button id="addType" class="btn" type="button">+ Add</button></div>
+  </div>
+
+  <div class="field"><label>Rate</label><div id="stars" class="stars"></div></div>
+
+  <div id="msg"></div>
+  <div class="bar">
+    <button id="cancelBtn" class="btn" type="button">Cancel</button>
+    <button id="saveBtn" class="btn save" type="button">Save</button>
+  </div>
+
+  <div id="done">
+    <b id="doneTitle">Saved ✅</b>
+    <div style="color:var(--muted)">You can switch back to your app now.</div>
+    <button class="btn" type="button" onclick="location.replace('./')">Open gallery</button>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+let S = {};
+try { S = JSON.parse(localStorage.getItem("ziLinkSettings") || "{}"); } catch {}
+const SHEET_ID = S.SHEET_ID || "", SHEET_GID = S.SHEET_GID || "", ENDPOINT = S.EDIT_ENDPOINT || "";
+const AUTO_FILL = S.AUTO_FILL !== false;
+
+function detectOembedPlatform(url){
+  try{
+    const h = new URL(url).hostname.replace(/^www\./,"");
+    if(h.includes("youtube.com") || h.includes("youtu.be")) return "youtube";
+    if(h.includes("tiktok.com")) return "tiktok";
+    if(h.includes("vimeo.com")) return "vimeo";
+  }catch{}
+  return null;
+}
+function oembedEndpoint(p, link){
+  if(p==="youtube") return `https://www.youtube.com/oembed?url=${encodeURIComponent(link)}&format=json`;
+  if(p==="tiktok")  return `https://www.tiktok.com/oembed?url=${encodeURIComponent(link)}`;
+  if(p==="vimeo")   return `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(link)}`;
+  return null;
+}
+function ytId(u){ const m = (u||"").match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/); return m ? m[1] : ""; }
+function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./,""); }catch{ return ""; } }
+function setTitleIfEmpty(t){ t = (t||"").trim(); const f = $("fTitle"); if(t && (!f.value.trim() || f.value.trim() === $("fLink").value.trim())){ f.value = t; refreshImage(); } }
+
+/* ---------- prefill from the Android Share sheet ---------- */
+(function prefill(){
+  const q = new URLSearchParams(location.search);
+  const text = q.get("text") || "";
+  let link = q.get("url") || "";
+  if (!link) { const m = text.match(/https?:\/\/\S+/); if (m) link = m[0]; }
+  let title = q.get("title") || "";
+  if (!title && text) title = text.replace(/https?:\/\/\S+/g, "").trim();
+  if (title === link) title = "";
+  $("fTitle").value = title; $("fLink").value = link;
+  if (link && AUTO_FILL) scanPage(link);
+})();
+
+/* ---------- picker UI ---------- */
+const pk = { img:$("pImg"), vid:$("pVid"), txt:$("pTxt") };
+const picked = [];
+function renderPicker(d){
+  pk.img.innerHTML = "";
+  $("nImg").textContent = `(${d.images.length})`;
+  if(!d.images.length) pk.img.innerHTML = '<div class="empty">No images found</div>';
+  d.images.forEach(url => {
+    const t = document.createElement("div"); t.className = "t"; t.dataset.url = url;
+    const im = document.createElement("img"); im.src = url; im.loading = "lazy"; im.referrerPolicy = "no-referrer";
+    im.onerror = () => t.remove();
+    t.appendChild(im);
+    t.onclick = () => { $("fImage").value = ($("fImage").value === url) ? "" : url; refreshImage(); markSel(); };
+    pk.img.appendChild(t);
+  });
+  pk.vid.innerHTML = "";
+  $("nVid").textContent = `(${d.videos.length})`;
+  pk.vid.style.display = d.videos.length ? "" : "none";
+  d.videos.forEach(url => {
+    const t = document.createElement("div"); t.className = "t"; t.dataset.url = url; t.title = url;
+    const id = ytId(url);
+    if(id){ const im = document.createElement("img"); im.src = `https://img.youtube.com/vi/${id}/hqdefault.jpg`; im.referrerPolicy = "no-referrer"; t.appendChild(im); }
+    else { const ic = document.createElement("div"); ic.className = "ico"; ic.textContent = "🎬"; const sm = document.createElement("small"); sm.textContent = hostOf(url); ic.appendChild(sm); t.appendChild(ic); }
+    t.onclick = () => { $("fVid").value = ($("fVid").value === url) ? "" : url; markSel(); };
+    pk.vid.appendChild(t);
+  });
+  pk.txt.innerHTML = "";
+  $("nTxt").textContent = `(${d.texts.length})`;
+  pk.txt.style.display = d.texts.length ? "" : "none";
+  d.texts.forEach(text => {
+    const x = document.createElement("div"); x.className = "x"; x.textContent = text;
+    x.onclick = () => {
+      const i = picked.indexOf(text);
+      if(i === -1) picked.push(text); else picked.splice(i, 1);
+      $("fNote").value = picked.join("  |  ");
+      x.classList.toggle("sel", i === -1);
+    };
+    pk.txt.appendChild(x);
+  });
+  markSel();
+}
+function markSel(){
+  pk.img.querySelectorAll(".t").forEach(x => x.classList.toggle("sel", x.dataset.url === $("fImage").value));
+  pk.vid.querySelectorAll(".t").forEach(x => x.classList.toggle("sel", x.dataset.url === $("fVid").value));
+}
+$("fImage").addEventListener("input", markSel);
+$("fVid").addEventListener("input", markSel);
+
+/* ---------- read the shared page ---------- */
+const PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+];
+async function tryFetch(url, opts, ms){
+  const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), ms);
+  try{ const r = await fetch(url, Object.assign({ signal: ctrl.signal }, opts)); return r.ok ? await r.text() : ""; }
+  catch{ return ""; } finally{ clearTimeout(tm); }
+}
+async function fetchHtml(url){
+  // 0) your own Apps Script (server-side fetch, most reliable)
+  let t = "";
+  if(ENDPOINT){
+    const j = await tryFetch(ENDPOINT + (ENDPOINT.includes("?") ? "&" : "?") + "action=scrape&url=" + encodeURIComponent(url), {}, 20000);
+    try{ const o = JSON.parse(j); if(o && o.ok && o.html && o.html.length > 200) return o.html; }catch{}
+  }
+  // 1) Jina Reader (renders on its server, CORS-enabled)
+  t = await tryFetch("https://r.jina.ai/" + url, { headers: { "X-Return-Format": "html" } }, 20000);
+  if(t && t.length > 200) return t;
+  // 2) public CORS proxies
+  for(const mk of PROXIES){
+    t = await tryFetch(mk(url), {}, 9000);
+    if(t && t.length > 200 && t.includes("<")) return t;
+  }
+  return "";
+}
+function parsePage(html, pageUrl){
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  let base = pageUrl;
+  const bh = doc.querySelector("base[href]"); if(bh){ try{ base = new URL(bh.getAttribute("href"), pageUrl).href; }catch{} }
+  const abs = u => { u = (u||"").trim(); if(!u || u.startsWith("javascript:") || u.startsWith("data:") || u.startsWith("blob:")) return null; try{ return new URL(u, base).href; }catch{ return null; } };
+  const meta = k => doc.querySelector(`meta[property="${k}"],meta[name="${k}"]`)?.getAttribute("content") || "";
+  const bigSrcset = s => { if(!s) return null; const a = s.split(",").map(p => { const b = p.trim().split(/\s+/); const w = b.find(x => /^\d+w$/i.test(x)); return { url:b[0], s:w ? parseInt(w) : 0 }; }).filter(x => x.url).sort((x,y) => y.s - x.s); return a[0]?.url || null; };
+  const BAD = /\b(sprite|spacer|pixel|blank|1x1|transparent|placeholder|loader|loading|logo|icon|avatar|badge|emoji|favicon)\b/i;
+
+  const images = [], seenI = new Set();
+  const addImg = u => { const a = abs(u); if(a && !seenI.has(a)){ seenI.add(a); images.push(a); } };
+  addImg(meta("og:image")); addImg(meta("og:image:url")); addImg(meta("twitter:image"));
+  const lazy = ["data-src","data-lazy-src","data-original","data-lazy","data-hi-res","data-large","data-full"];
+  doc.querySelectorAll("img").forEach(im => {
+    if(images.length >= 60) return;
+    const w = parseInt(im.getAttribute("width")) || 0, h = parseInt(im.getAttribute("height")) || 0;
+    if((w && w < 100) || (h && h < 100)) return;
+    if(im.closest("header,nav,footer,aside")) return;
+    const u = [bigSrcset(im.getAttribute("srcset")), ...lazy.map(a => im.getAttribute(a)), im.getAttribute("src")].find(Boolean);
+    if(u && !BAD.test(u)) addImg(u);
+  });
+  doc.querySelectorAll("picture source").forEach(s => { if(images.length < 60){ const u = bigSrcset(s.getAttribute("srcset")); if(u && !BAD.test(u)) addImg(u); } });
+
+  const videos = [], seenV = new Set();
+  const addVid = u => { const a = abs(u); if(a && !seenV.has(a)){ seenV.add(a); videos.push(a); } };
+  addVid(meta("og:video")); addVid(meta("og:video:url")); addVid(meta("og:video:secure_url"));
+  doc.querySelectorAll("video").forEach(v => { addVid(v.getAttribute("src")); v.querySelectorAll("source").forEach(s => addVid(s.getAttribute("src"))); });
+  doc.querySelectorAll("a[href]").forEach(a => { const h = a.getAttribute("href"); if(/\.(mp4|webm|mov|mkv|m3u8)(\?|$)/i.test(h)) addVid(h); });
+  const EMB = /youtube\.com\/(embed|watch)|youtu\.be|player\.vimeo\.com|vimeo\.com\/\d+|tiktok\.com|dailymotion\.com\/(embed|video)|facebook\.com\/plugins\/video/i;
+  doc.querySelectorAll("iframe[src]").forEach(f => { const s = f.getAttribute("src"); if(EMB.test(s)) addVid(s); });
+
+  const texts = [], seenT = new Set();
+  doc.querySelectorAll("h1,h2,h3,p,li,figcaption,blockquote").forEach(el => {
+    if(texts.length >= 150 || el.closest("script,style,noscript,nav,footer,header,aside")) return;
+    let t = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if(t.length < 2 || !/[\p{L}\p{N}]/u.test(t)) return;
+    if(t.length > 500) t = t.slice(0, 500) + "…";
+    const k = t.toLowerCase(); if(seenT.has(k)) return; seenT.add(k); texts.push(t);
+  });
+  const title = (meta("og:title") || meta("twitter:title") || doc.title || "").replace(/\s+/g, " ").trim();
+  return { title, images: images.slice(0, 60), videos: videos.slice(0, 30), texts };
+}
+async function scanPage(link){
+  const stat = $("pstat"); stat.textContent = "Reading page…";
+  const data = { title:"", images:[], videos:[], texts:[] };
+  const uniq = a => [...new Set(a)];
+  const autoPick = () => {
+    if(!$("fImage").value && data.images[0]){ $("fImage").value = data.images[0]; refreshImage(); }
+    if(!$("fVid").value && data.videos[0]) $("fVid").value = data.videos[0];
+    markSel();
+  };
+
+  // quick wins: oEmbed + YouTube thumbnail
+  const p = detectOembedPlatform(link);
+  if(p){
+    if(!$("fVid").value) $("fVid").value = link;
+    data.videos.push(link);
+    const id = ytId(link);
+    if(id){ data.images.push(`https://img.youtube.com/vi/${id}/hqdefault.jpg`); }
+    fetch(oembedEndpoint(p, link)).then(r => r.ok ? r.json() : null).then(j => {
+      if(!j) return;
+      setTitleIfEmpty(j.title);
+      if(j.thumbnail_url && !data.images.includes(j.thumbnail_url)){ data.images.unshift(j.thumbnail_url); renderPicker(data); }
+    }).catch(() => {});
+  }
+  renderPicker(data); autoPick();
+
+  const html = await fetchHtml(link);
+  if(html){
+    const d = parsePage(html, link);
+    setTitleIfEmpty(d.title);
+    data.images = uniq([...data.images, ...d.images]).slice(0, 60);
+    data.videos = uniq([...data.videos, ...d.videos]).slice(0, 30);
+    data.texts = d.texts;
+    renderPicker(data); autoPick();
+  }
+  // Jina markdown (gives Title + images + text even when the HTML had little)
+  if(!html || (data.images.length < 2 && !data.texts.length)){
+    const md = await tryFetch("https://r.jina.ai/" + link, {}, 20000);
+    if(md && md.length > 50){
+      setTitleIfEmpty((md.match(/^Title:\s*(.+)$/m) || [])[1]);
+      const body = md.split(/Markdown Content:/)[1] || md;
+      const imgs = [...body.matchAll(/!\[[^\]]*\]\((https?:[^)\s]+)/g)].map(m => m[1]);
+      const vids = body.match(/https?:\/\/[^\s)\]]+\.(?:mp4|webm|mov|m3u8)[^\s)\]]*/gi) || [];
+      data.images = uniq([...data.images, ...imgs]).slice(0, 60);
+      data.videos = uniq([...data.videos, ...vids]).slice(0, 30);
+      if(!data.texts.length) data.texts = uniq(body.split(/\n+/).map(l => l.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[#*>`_]/g, "").replace(/\s+/g, " ").trim()).filter(l => l.length > 2 && /[\p{L}\p{N}]/u.test(l)).map(l => l.slice(0, 500))).slice(0, 150);
+      renderPicker(data); autoPick();
+    }
+  }
+  // last resort: Microlink
+  if(!data.images.length && !data.videos.length){
+    try{
+      const r = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(link)}`);
+      const m = (await r.json()).data;
+      if(m){
+        setTitleIfEmpty(m.title);
+        if(m.image && m.image.url) data.images.push(m.image.url);
+        if(m.video && m.video.url) data.videos.push(m.video.url);
+        renderPicker(data); autoPick();
+      }
+    }catch{}
+  }
+  stat.textContent = (data.images.length || data.videos.length || data.texts.length) ? "" : "Couldn't read the page";
+}
+
+/* ---------- image preview + search links ---------- */
+function refreshImage(){
+  const u = $("fImage").value.trim(), p = $("preview");
+  if (/^https?:\/\//i.test(u)) { p.src = u; p.referrerPolicy = "no-referrer"; p.style.display = "block"; p.onerror = () => p.style.display = "none"; }
+  else p.style.display = "none";
+  const t = encodeURIComponent($("fTitle").value.trim());
+  $("gImg").href = "https://www.google.com/search?tbm=isch&q=" + t;
+  $("yImg").href = "https://yandex.com/images/search?text=" + t;
+}
+$("fImage").addEventListener("input", refreshImage);
+$("fTitle").addEventListener("input", refreshImage);
+refreshImage();
+
+/* ---------- rating 1..7 ---------- */
+let rate = 0;
+(function stars(){
+  const box = $("stars");
+  for (let i = 1; i <= 7; i++) {
+    const s = document.createElement("span"); s.className = "star"; s.textContent = "★";
+    s.onclick = () => { rate = (rate === i) ? 0 : i; [...box.children].forEach((c, k) => c.classList.toggle("on", k < rate)); };
+    box.appendChild(s);
+  }
+})();
+
+/* ---------- types ---------- */
+const selected = new Set(); let allTypes = [];
+function renderChips(){
+  const box = $("chips"); box.innerHTML = "";
+  const names = [...allTypes];
+  selected.forEach(t => { if (!names.some(n => n.toLowerCase() === t.toLowerCase())) names.push(t); });
+  if (!names.length) { box.innerHTML = '<span style="color:var(--muted);font-size:12px">No types yet — add one below.</span>'; return; }
+  names.forEach(t => {
+    const c = document.createElement("span"); c.className = "chip" + (selected.has(t) ? " sel" : ""); c.textContent = t;
+    c.onclick = () => { selected.has(t) ? selected.delete(t) : selected.add(t); renderChips(); };
+    box.appendChild(c);
+  });
+}
+$("addType").onclick = () => {
+  const v = $("newType").value.trim(); if (!v) return;
+  const hit = allTypes.find(n => n.toLowerCase() === v.toLowerCase());
+  selected.add(hit || v); $("newType").value = ""; renderChips();
+};
+function loadTypes(){
+  if (!SHEET_ID) { renderChips(); return; }
+  const cb = "g" + Math.random().toString(36).slice(2);
+  const s = document.createElement("script");
+  window[cb] = json => {
+    try {
+      const cols = (json.table.cols || []).map(c => (c.label || "").trim().toLowerCase());
+      const i = cols.indexOf("type"), seen = new Map();
+      (json.table.rows || []).forEach(r => {
+        const v = r.c && r.c[i] && r.c[i].v != null ? String(r.c[i].v) : "";
+        v.split(",").map(x => x.trim()).filter(Boolean).forEach(x => { if (!seen.has(x.toLowerCase())) seen.set(x.toLowerCase(), x); });
+      });
+      allTypes = [...seen.values()].sort((a, b) => a.localeCompare(b));
+    } catch {}
+    renderChips(); s.remove(); delete window[cb];
+  };
+  s.src = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(SHEET_ID)}/gviz/tq?tqx=responseHandler:${cb}` + (SHEET_GID ? `&gid=${encodeURIComponent(SHEET_GID)}` : "");
+  s.onerror = () => { renderChips(); s.remove(); };
+  document.head.appendChild(s);
+  setTimeout(() => { if (window[cb]) renderChips(); }, 8000);
+}
+renderChips(); loadTypes();
+
+/* ---------- finish / save ---------- */
+function finish(title){
+  $("doneTitle").textContent = title;
+  try { window.close(); } catch {}
+  setTimeout(() => { $("done").style.display = "flex"; }, 450);
+}
+$("cancelBtn").onclick = () => finish("Cancelled");
+
+$("saveBtn").onclick = async () => {
+  const msg = $("msg");
+  if (!ENDPOINT || !SHEET_GID) { msg.style.color = "#ff8080"; msg.textContent = "Set the sheet link and the script link in the gallery's ⚙️ Settings first."; return; }
+  const payload = {
+    action: "add", gid: SHEET_GID,
+    title: $("fTitle").value, link: $("fLink").value, image: $("fImage").value, vid: $("fVid").value,
+    type: [...selected].join(", "), rate: rate ? String(rate) : "", note: $("fNote").value
+  };
+  msg.style.color = "var(--muted)"; msg.textContent = "Saving…"; $("saveBtn").disabled = true;
+  const req = fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, keepalive: true, body: JSON.stringify(payload) })
+    .then(r => r.json().catch(() => ({ ok: true })));
+  try {
+    const res = await Promise.race([req, new Promise(r => setTimeout(() => r("timeout"), 1500))]);
+    if (res && res !== "timeout" && res.ok === false) { msg.style.color = "#ff8080"; msg.textContent = "Error: " + (res.error || "unknown"); $("saveBtn").disabled = false; return; }
+    finish("Saved ✅");
+  } catch (e) {
+    msg.style.color = "#ff8080"; msg.textContent = "Error: " + (e.message || e); $("saveBtn").disabled = false;
+  }
+};
+
+if (!ENDPOINT || !SHEET_GID) { $("msg").style.color = "#ffd75e"; $("msg").textContent = "Not set up yet — open the gallery and fill ⚙️ Settings."; }
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
 </body>
 </html>
