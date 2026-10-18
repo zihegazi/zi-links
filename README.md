@@ -12,7 +12,7 @@ Gallery for your Google Sheet links + add/edit + share-to-add. All personal valu
 - **Google Sheet link**: any link to the sheet tab (ID and gid are extracted). Must be shared as "Anyone with the link – Viewer".
 - **Add/Edit endpoint**: the Apps Script Web App `/exec` link.
 - **Add from any page (Chrome desktop)**: drag the ➕ button to the bookmarks bar; click it on any page to add that page (images/videos/text picker, like the extension).
-- **Advanced → Sheet tab name**: your Apps Script finds the tab by name (`getSheetByName`), so it must match the tab (default `List`).
+- The tab is identified by the `gid` in the sheet link (no tab name needed). This needs the new `Code.gs` Apps Script.
 - **Edit password**: optional.
 - **Copy setup link**: puts the settings in the URL `#cfg=…` so a second device gets them in one tap. Keep it private.
 

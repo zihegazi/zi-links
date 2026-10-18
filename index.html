@@ -802,6 +802,9 @@ main {
 .pp-text .x:hover{ background:rgba(127,208,255,.08); }
 .pp-text .x.sel{ background:rgba(157,255,157,.10); }
 .pp-empty{ grid-column:1/-1; font-size:12px; color:var(--muted); text-align:center; padding:8px; }
+#settingsBtn{ display:flex; align-items:center; justify-content:center; }
+#settingsBtn svg{ height:18px; width:auto; display:block; }
+@media (min-width:701px){ .controls #settingsBtn{ position:absolute; left:8px; top:50%; transform:translateY(-50%); } }
 .set-hint{ font-size:11px; color:var(--muted); line-height:1.5; }
 #setSheetParsed{ color:#9dff9d; }
 #setSheetParsed.bad{ color:#ff8080; }
@@ -812,10 +815,10 @@ main {
 <body>
 
 <div class="controls">
+<button id="settingsBtn" title="Settings"><svg viewBox="0 0 360 350" aria-hidden="true"><path fill="currentColor" d="m181 24-53 4L10 40q-2 0-2 3l41 128c1 2 4-2 33-32l25-27-2 6-34 65-42 80-17 33-6 13h3c2 1 180-2 192-3h6v-7a1766 1766 0 0 0-22-121l-18 16-27 23 30-80c46-123 42-113 40-114q-5-2-29 1m151-14-59 17-49 14c-6 2-6 2-3 18l25 158c2 2 41 10 44 10l3-5c8-29 56-208 59-215q2-4-20 2m-80 234q-22 4-33 21c-3 6-3 7-3 16 0 7 0 9 3 14 2 5 11 14 17 17 20 10 45 6 60-9q14-17 7-35c-3-6-12-16-19-19q-15-7-32-5"/></svg></button>
 <button id="homeButton" title="Scroll to top">◮</button>
 <button id="reloadBtn" title="Reload data from the sheet without refreshing the page">⟳</button>
 <button id="addCardBtn" title="Add a new card to the sheet">➕</button>
-<button id="settingsBtn" title="Settings">⚙️</button>
 
 
 
@@ -1005,12 +1008,6 @@ main {
       <label>Edit password (optional)</label>
       <input id="setPassword" type="password" placeholder="(none)" autocomplete="off"/>
     </div>
-    <details class="modal-field">
-      <summary class="set-hint" style="cursor:pointer">Advanced</summary>
-      <label style="display:block;margin-top:6px">Sheet tab name</label>
-      <input id="setSheetName" type="text" placeholder="List" autocomplete="off"/>
-      <div class="set-hint" dir="rtl">الـ Apps Script بتاعك بيدور على التاب بالاسم (getSheetByName) فلازم يطابق اسم التاب. سيبه List.</div>
-    </details>
     <div class="modal-field">
       <label>Add from any page (Chrome desktop)</label>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -1019,11 +1016,12 @@ main {
       </div>
       <div class="set-hint" dir="rtl">اسحب الزرار ده لشريط الـ Bookmarks مرة واحدة. بعدها في أي صفحة دوس عليه: بيفتح فورم الإضافة بعنوان ولينك الصفحة وصورها وفيديوهاتها ونصوصها تختار منها، زي الإضافة. (مواقع قليلة بتمنع الـ bookmarklets، زي GitHub، ومش هتشتغل فيها.)</div>
     </div>
+    <div class="set-hint" dir="rtl" style="margin-top:4px">«Copy phone setup link»: بينسخ لينك فيه إعداداتك (الشيت + لينك الـ Script). ابعته لنفسك وافتحه على الموبايل فالبرنامج يتظبط لوحده من غير ما تكتب حاجة. اللينك فيه لينك الـ Script فمتشاركوش مع حد.</div>
     <div class="modal-msg" id="setMsg"></div>
     <div class="modal-actions">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button id="setTestBtn" type="button">Test</button>
-        <button id="setShareBtn" type="button" title="Copies a link that applies these settings on another device">Copy setup link</button>
+        <button id="setShareBtn" type="button" title="Copies a link that applies these settings on another device">Copy phone setup link</button>
         <button id="setResetBtn" type="button" class="clear-btn">Reset</button>
       </div>
       <div class="modal-actions-right">
@@ -1986,7 +1984,6 @@ document.getElementById("editSaveBtn").onclick = async () => {
   const payload = {
     action: isAddMode ? "add" : "edit",
     row:    isAddMode ? undefined : currentEditItem.row,
-    sheet:  CONFIG.SHEET_NAME,
     gid:    CONFIG.SHEET_GID,
     title:  document.getElementById("editTitle").value,
     link:   document.getElementById("editLink").value,
@@ -2358,7 +2355,7 @@ function parseCSV(text){
   }).filter(x=>x.image||x.title||x.link||x.vid);
 }
 
-const makeJSONPUrl=cb=>`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}${CONFIG.SHEET_GID ? "&gid="+encodeURIComponent(CONFIG.SHEET_GID) : "&sheet="+encodeURIComponent(CONFIG.SHEET_NAME)}`;
+const makeJSONPUrl=cb=>`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}${CONFIG.SHEET_GID ? "&gid="+encodeURIComponent(CONFIG.SHEET_GID) : ""}`;
 function loadGVizJSONP(){ return new Promise((resolve,reject)=>{ const cb="gviz_cb_"+Math.random().toString(36).slice(2); const cleanup=s=>{try{delete window[cb];}catch{} if(s?.parentNode) s.remove();}; window[cb]=d=>{resolve(d); cleanup(script);}; const script=document.createElement("script"); script.src=makeJSONPUrl(cb); script.async=true; script.onerror=()=>{cleanup(script); reject(Error("Network error"));}; document.head.appendChild(script); setTimeout(()=>{if(window[cb]){cleanup(script); reject(Error("Timeout"));}},12000); }); }
 function toItemsFromGViz(json){
   const cols=(json.table.cols||[]).map(c=>(c.label||"").trim().toLowerCase());
@@ -2596,7 +2593,6 @@ function parseSheetUrl(u){
 const setEl = {
   overlay: document.getElementById("settingsOverlay"),
   url: document.getElementById("setSheetUrl"),
-  name: document.getElementById("setSheetName"),
   parsed: document.getElementById("setSheetParsed"),
   endpoint: document.getElementById("setEndpoint"),
   pass: document.getElementById("setPassword"),
@@ -2606,8 +2602,8 @@ function setMsg(t, bad){ setEl.msg.textContent = t; setEl.msg.style.color = bad 
 function showParsed(){
   const p = parseSheetUrl(setEl.url.value);
   if(!setEl.url.value.trim()){ setEl.parsed.textContent = ""; return p; }
-  setEl.parsed.classList.toggle("bad", !p.id);
-  setEl.parsed.textContent = p.id ? `ID: ${p.id}${p.gid ? "  ·  gid: "+p.gid : "  ·  (no gid — will use tab name)"}` : "مش لاقي ID للشيت في اللينك ده";
+  setEl.parsed.classList.toggle("bad", !p.id || !p.gid);
+  setEl.parsed.textContent = p.id ? `ID: ${p.id}${p.gid ? "  ·  gid: "+p.gid : "  ·  (no gid! open the tab and copy the link from the address bar)"}` : "مش لاقي ID للشيت في اللينك ده";
   return p;
 }
 setEl.url.addEventListener("input", showParsed);
@@ -2618,7 +2614,6 @@ function sheetUrlFromConfig(){
 }
 function openSettings(){
   setEl.url.value = sheetUrlFromConfig();
-  setEl.name.value = CONFIG.SHEET_NAME || "List";
   setEl.endpoint.value = CONFIG.EDIT_ENDPOINT || "";
   setEl.pass.value = CONFIG.EDIT_PASSWORD || "";
   setMsg("", false); showParsed();
@@ -2628,7 +2623,7 @@ function readSettingsForm(){
   const p = parseSheetUrl(setEl.url.value);
   return {
     SHEET_ID: p.id, SHEET_GID: p.gid,
-    SHEET_NAME: setEl.name.value.trim() || "List",
+    SHEET_NAME: "",
     EDIT_ENDPOINT: setEl.endpoint.value.trim(),
     EDIT_PASSWORD: setEl.pass.value,
   };
@@ -2640,6 +2635,7 @@ setEl.overlay.addEventListener("click", e => { if(e.target === setEl.overlay) se
 document.getElementById("setSaveBtn").onclick = async () => {
   const s = readSettingsForm();
   if(setEl.url.value.trim() && !s.SHEET_ID){ setMsg("Sheet link isn't valid.", true); return; }
+  if(setEl.url.value.trim() && !s.SHEET_GID){ setMsg("The link has no gid — open the tab in Google Sheets and copy the link from the address bar.", true); return; }
   if(s.EDIT_ENDPOINT && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(s.EDIT_ENDPOINT)){
     setMsg("Endpoint should look like https://script.google.com/macros/s/…/exec", true); return;
   }
@@ -2663,6 +2659,7 @@ document.getElementById("setResetBtn").onclick = () => {
 document.getElementById("setTestBtn").onclick = async () => {
   const s = readSettingsForm();
   if(!s.SHEET_ID){ setMsg("Paste the sheet link first.", true); return; }
+  if(!s.SHEET_GID){ setMsg("The link has no gid — open the tab in Google Sheets and copy the link from the address bar.", true); return; }
   setMsg("Testing…", false);
   const backup = { SHEET_ID:CONFIG.SHEET_ID, SHEET_GID:CONFIG.SHEET_GID, SHEET_NAME:CONFIG.SHEET_NAME };
   Object.assign(CONFIG, { SHEET_ID:s.SHEET_ID, SHEET_GID:s.SHEET_GID, SHEET_NAME:s.SHEET_NAME });
@@ -2730,252 +2727,7 @@ document.getElementById("setShareBtn").onclick = async () => {
 })();
 
 
-// ====== Page reader: نفس دالة الإضافة، بتتحط جوه الـ bookmarklet وبتشتغل في الصفحة المفتوحة ======
-function extractPageData() {
-  function abs(url) {
-    if (!url || typeof url !== "string") return null;
-    url = url.trim();
-    if (!url || url.startsWith("javascript:")) return null;
-    if (url.startsWith("data:") || url.startsWith("blob:")) return url;
-    try { return new URL(url, location.href).href; } catch { return null; }
-  }
-
-  // Collapses any run of whitespace/newlines (extra spaces from the page) into one space
-  function cleanText(s) {
-    return (s || "").replace(/\s+/g, " ").trim();
-  }
-
-  // Picks the highest-resolution candidate out of a srcset attribute
-  function bestFromSrcset(raw) {
-    if (!raw) return null;
-    const entries = raw.split(",").map(s => {
-      const parts = s.trim().split(/\s+/);
-      const w = parts.find(p => /^\d+w$/i.test(p));
-      const x = parts.find(p => /^\d+(\.\d+)?x$/i.test(p));
-      return { url: parts[0], score: w ? parseInt(w) : (x ? parseFloat(x) * 1000 : 0) };
-    }).filter(e => e.url);
-    entries.sort((a, b) => b.score - a.score);
-    return entries[0]?.url || null;
-  }
-
-  function bgUrlFrom(cssValue) {
-    if (!cssValue || cssValue === "none") return null;
-    const m = cssValue.match(/url\(\s*(['"]?)(.*?)\1\s*\)/);
-    return m ? m[2] : null;
-  }
-
-  const metaTitle =
-    document.querySelector('meta[property="og:title"]')?.content ||
-    document.querySelector('meta[name="twitter:title"]')?.content ||
-    document.title || "";
-
-  const LAZY_IMG_ATTRS = [
-    "data-src", "data-lazy-src", "data-original", "data-lazy", "data-echo",
-    "data-hi-res", "data-hires", "data-large", "data-large-image",
-    "data-zoom-src", "data-zoom", "data-full", "data-full-image", "data-2x"
-  ];
-
-  const IMG_CAP = 60;
-  const VID_CAP = 30;
-  // Hard ceiling on how many elements we'll run getComputedStyle() on — this
-  // is the expensive part on huge/complex pages, since it can force a full
-  // style recalculation across the whole DOM.
-  const BG_SCAN_CAP = 3000;
-  const IMG_SCAN_CAP = 2500;
-
-  // ---- Smarter image ranking ----
-  // Instead of a flat "big enough → in" cutoff, every candidate gets a score
-  // and we keep the highest-scoring ones. Layout size (not just the file's
-  // natural resolution) is the main signal — a 2000px photo shrunk to a
-  // 40px avatar shouldn't outrank a 400px photo shown at full size — and
-  // that's adjusted up for images that sit in the actual article/content
-  // area, and down for images that are UI chrome (nav/header/footer/ads),
-  // oddly-shaped strips (banners/dividers), or named like logos, icons,
-  // avatars, or tracking pixels.
-  const CHROME_SELECTOR = "header, nav, footer, aside, [role='banner'], [role='navigation'], [role='contentinfo'], .sidebar, .ad, .ads, .advertisement, .cookie, .cookie-banner, .popup, .modal, .newsletter, .subscribe";
-  const MAIN_SELECTOR = "main, article, [role='main'], figure, .content, .post, .entry, .article-body";
-  const JUNK_NAME_RE = /\b(sprite|spacer|pixel|blank|1x1|transparent|placeholder|lazyload|loader|loading)\b/i;
-  const DECOR_NAME_RE = /\b(logo|icon|avatar|badge|emoji|social|favicon)\b/i;
-  const MIN_AREA = 100 * 100;
-
-  const imgScores = new Map(); // url -> best score seen so far
-
-  function scoreImage(url, w, h, el) {
-    if (JUNK_NAME_RE.test(url)) return null; // tracking pixels / spacers: never show these
-    let score = Math.min(w * h, 4000000); // area is the main signal, capped so one huge image can't swamp everything else
-    const aspect = (w && h) ? w / h : 1;
-    if (aspect > 6 || aspect < 0.15) score -= 50000; // thin banner/divider strips
-    if (DECOR_NAME_RE.test(url)) score -= 60000;
-    if (el && el.closest) {
-      try {
-        if (el.closest(CHROME_SELECTOR)) score -= 80000;
-        if (el.closest(MAIN_SELECTOR)) score += 40000;
-        const alt = (el.getAttribute && el.getAttribute("alt")) || "";
-        if (alt.trim().length > 15) score += 8000;
-        if (el.closest("figure")?.querySelector("figcaption")) score += 6000;
-      } catch {}
-    }
-    if (w * h < MIN_AREA && score < 40000) return null; // drop tiny generic images unless something strongly marks them as content
-    return score;
-  }
-
-  function considerImg(url, w, h, el) {
-    const u = abs(url);
-    if (!u) return;
-    const score = scoreImage(u, w, h, el);
-    if (score === null) return;
-    const prev = imgScores.get(u);
-    if (prev === undefined || score > prev) imgScores.set(u, score);
-  }
-
-  const metaImg =
-    document.querySelector('meta[property="og:image"]')?.content ||
-    document.querySelector('meta[name="twitter:image"]')?.content;
-
-  // <img>: real src, srcset (best candidate), and common lazy-load attributes.
-  // Falls back to the rendered box size when naturalWidth isn't available yet
-  // (still lazy-loading), so images aren't unfairly dropped just for that.
-  const allImgs = document.querySelectorAll("img");
-  const imgScanLimit = Math.min(allImgs.length, IMG_SCAN_CAP);
-  for (let i = 0; i < imgScanLimit; i++) {
-    const img = allImgs[i];
-    const rect = img.getBoundingClientRect();
-    const w = img.naturalWidth || rect.width || img.width || 0;
-    const h = img.naturalHeight || rect.height || img.height || 0;
-    if (img.currentSrc) considerImg(img.currentSrc, w, h, img);
-    else if (img.src) considerImg(img.src, w, h, img);
-    const bestSrcset = bestFromSrcset(img.getAttribute("srcset"));
-    if (bestSrcset) considerImg(bestSrcset, w, h, img);
-    LAZY_IMG_ATTRS.forEach(a => {
-      const v = img.getAttribute(a);
-      if (v) considerImg(v, w, h, img);
-    });
-  }
-
-  // <picture><source srcset> — score using the sibling <img>'s box, since the
-  // <source> element itself has no rendered size of its own.
-  const pictureSources = document.querySelectorAll("picture source");
-  for (let i = 0; i < pictureSources.length; i++) {
-    const source = pictureSources[i];
-    const sibImg = source.closest("picture")?.querySelector("img");
-    const rect = sibImg ? sibImg.getBoundingClientRect() : null;
-    const w = sibImg?.naturalWidth || rect?.width || 0;
-    const h = sibImg?.naturalHeight || rect?.height || 0;
-    const best = bestFromSrcset(source.getAttribute("srcset") || source.getAttribute("data-srcset"));
-    if (best) considerImg(best, w, h, sibImg || source);
-  }
-
-  // CSS background-image on elements likely to carry one (banners/heroes/cards).
-  // Skipping <script>, <style>, inline text tags etc. cuts the scan down a lot
-  // on real pages without missing much, and we still cap the scan itself.
-  const bgCandidates = document.querySelectorAll("div, section, header, footer, a, li, figure, article, aside, span, button");
-  const bgScanLimit = Math.min(bgCandidates.length, BG_SCAN_CAP);
-  for (let i = 0; i < bgScanLimit; i++) {
-    const el = bgCandidates[i];
-    try {
-      const url = bgUrlFrom(getComputedStyle(el).backgroundImage);
-      if (!url) continue;
-      const rect = el.getBoundingClientRect();
-      considerImg(url, rect.width, rect.height, el);
-    } catch {}
-  }
-
-  // Final order: the page's own declared share image first (it's a deliberate
-  // editorial choice, so it's trusted outright), then everything else ranked
-  // by score, highest first.
-  const images = [];
-  const seenImg = new Set();
-  if (metaImg) {
-    const u = abs(metaImg);
-    if (u) { images.push(u); seenImg.add(u); imgScores.delete(u); }
-  }
-  const ranked = [...imgScores.entries()].sort((a, b) => b[1] - a[1]).map(([u]) => u);
-  for (const u of ranked) {
-    if (seenImg.has(u)) continue;
-    seenImg.add(u);
-    images.push(u);
-  }
-
-  // Videos: <video> tags, direct file links, and known video-platform iframes
-  const seenVid = new Set();
-  const videos = [];
-  function pushVid(url) {
-    const u = abs(url);
-    if (!u || seenVid.has(u) || u.startsWith("blob:")) return;
-    seenVid.add(u);
-    videos.push(u);
-  }
-  const allVideoTags = document.querySelectorAll("video");
-  for (let i = 0; i < allVideoTags.length && videos.length < VID_CAP; i++) {
-    const v = allVideoTags[i];
-    if (v.currentSrc) pushVid(v.currentSrc);
-    else if (v.src) pushVid(v.src);
-    v.querySelectorAll("source").forEach(s => { if (s.src) pushVid(s.src); });
-    ["data-src", "data-lazy-src"].forEach(a => { const val = v.getAttribute(a); if (val) pushVid(val); });
-  }
-  const linkTags = document.querySelectorAll('a[href]');
-  for (let i = 0; i < linkTags.length && videos.length < VID_CAP; i++) {
-    const href = linkTags[i].href;
-    if (/\.(mp4|webm|mov|mkv|m3u8)(\?|$)/i.test(href)) pushVid(href);
-  }
-  const videoHostPattern = /youtube\.com\/(embed|watch)|youtu\.be|player\.vimeo\.com|vimeo\.com\/\d+|tiktok\.com|dailymotion\.com\/(embed|video)|facebook\.com\/plugins\/video/i;
-  const iframeTags = document.querySelectorAll("iframe");
-  for (let i = 0; i < iframeTags.length && videos.length < VID_CAP; i++) {
-    const src = iframeTags[i].src;
-    if (src && videoHostPattern.test(src)) pushVid(src);
-  }
-
-  // Visible body text: every distinct piece of text a human would actually
-  // see — plain paragraphs, list items, link labels, buttons, whatever —
-  // not just a fixed set of tags. Walks every text node, keeps the ones
-  // whose immediate parent is on-screen, and groups by that parent so a
-  // link's own text (or any other element's own text) is captured once,
-  // without re-grabbing the same words again from an ancestor container.
-  const TEXT_CAP = 150;
-  const NODE_VISIT_CAP = 8000; // hard ceiling so a huge page can't hang the scan
-  const seenText = new Set();
-  const texts = [];
-  function isVisible(el) {
-    const style = getComputedStyle(el);
-    if (style.display === "none" || style.visibility === "hidden" || parseFloat(style.opacity) === 0) return false;
-    const rect = el.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0;
-  }
-  const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "TEXTAREA", "INPUT", "SELECT", "OPTION", "SVG", "CANVAS", "IFRAME"]);
-  const groups = new Map(); // element -> its own direct text-node chunks
-  const order = [];
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  let node, visited = 0;
-  while ((node = walker.nextNode()) && visited < NODE_VISIT_CAP) {
-    visited++;
-    const raw = node.nodeValue;
-    if (!raw || !raw.trim()) continue;
-    const parent = node.parentElement;
-    if (!parent || SKIP_TAGS.has(parent.tagName)) continue;
-    if (parent.closest("script, style, noscript, template")) continue;
-    if (!isVisible(parent)) continue;
-    if (!groups.has(parent)) { groups.set(parent, []); order.push(parent); }
-    groups.get(parent).push(raw);
-  }
-  for (let i = 0; i < order.length && texts.length < TEXT_CAP; i++) {
-    let text = cleanText(groups.get(order[i]).join(" "));
-    if (text.length < 2) continue;
-    if (!/[\p{L}\p{N}]/u.test(text)) continue; // skip pure punctuation/symbol fragments
-    if (text.length > 500) text = text.slice(0, 500) + "…";
-    const key = text.toLowerCase();
-    if (seenText.has(key)) continue;
-    seenText.add(key);
-    texts.push(text);
-  }
-
-  return {
-    title: cleanText(metaTitle),
-    link: location.href,
-    images: images.slice(0, IMG_CAP),
-    videos: videos.slice(0, VID_CAP),
-    texts: texts.slice(0, TEXT_CAP)
-  };
-}
+const BM_FN_SRC = "function(){function t(t){if(!t||\"string\"!=typeof t)return null;if(!(t=t.trim())||t.startsWith(\"javascript:\"))return null;if(t.startsWith(\"data:\")||t.startsWith(\"blob:\"))return t;try{return new URL(t,location.href).href}catch{return null}}function e(t){return(t||\"\").replace(/\\s+/g,\" \").trim()}function n(t){if(!t)return null;const e=t.split(\",\").map(t=>{const e=t.trim().split(/\\s+/),n=e.find(t=>/^\\d+w$/i.test(t)),r=e.find(t=>/^\\d+(\\.\\d+)?x$/i.test(t));return{url:e[0],score:n?parseInt(n):r?1e3*parseFloat(r):0}}).filter(t=>t.url);return e.sort((t,e)=>e.score-t.score),e[0]?.url||null}function r(t){if(!t||\"none\"===t)return null;const e=t.match(/url\\(\\s*(['\"]?)(.*?)\\1\\s*\\)/);return e?e[2]:null}const o=document.querySelector('meta[property=\"og:title\"]')?.content||document.querySelector('meta[name=\"twitter:title\"]')?.content||document.title||\"\",c=[\"data-src\",\"data-lazy-src\",\"data-original\",\"data-lazy\",\"data-echo\",\"data-hi-res\",\"data-hires\",\"data-large\",\"data-large-image\",\"data-zoom-src\",\"data-zoom\",\"data-full\",\"data-full-image\",\"data-2x\"],i=/\\b(sprite|spacer|pixel|blank|1x1|transparent|placeholder|lazyload|loader|loading)\\b/i,a=/\\b(logo|icon|avatar|badge|emoji|social|favicon)\\b/i,l=new Map;function s(e,n,r,o){const c=t(e);if(!c)return;const s=function(t,e,n,r){if(i.test(t))return null;let o=Math.min(e*n,4e6);const c=e&&n?e/n:1;if((c>6||c<.15)&&(o-=5e4),a.test(t)&&(o-=6e4),r&&r.closest)try{r.closest(\"header, nav, footer, aside, [role='banner'], [role='navigation'], [role='contentinfo'], .sidebar, .ad, .ads, .advertisement, .cookie, .cookie-banner, .popup, .modal, .newsletter, .subscribe\")&&(o-=8e4),r.closest(\"main, article, [role='main'], figure, .content, .post, .entry, .article-body\")&&(o+=4e4),(r.getAttribute&&r.getAttribute(\"alt\")||\"\").trim().length>15&&(o+=8e3),r.closest(\"figure\")?.querySelector(\"figcaption\")&&(o+=6e3)}catch{}return e*n<1e4&&o<4e4?null:o}(c,n,r,o);if(null===s)return;const u=l.get(c);(void 0===u||s>u)&&l.set(c,s)}const u=document.querySelector('meta[property=\"og:image\"]')?.content||document.querySelector('meta[name=\"twitter:image\"]')?.content,d=document.querySelectorAll(\"img\"),h=Math.min(d.length,2500);for(let t=0;t<h;t++){const e=d[t],r=e.getBoundingClientRect(),o=e.naturalWidth||r.width||e.width||0,i=e.naturalHeight||r.height||e.height||0;e.currentSrc?s(e.currentSrc,o,i,e):e.src&&s(e.src,o,i,e);const a=n(e.getAttribute(\"srcset\"));a&&s(a,o,i,e),c.forEach(t=>{const n=e.getAttribute(t);n&&s(n,o,i,e)})}const g=document.querySelectorAll(\"picture source\");for(let t=0;t<g.length;t++){const e=g[t],r=e.closest(\"picture\")?.querySelector(\"img\"),o=r?r.getBoundingClientRect():null,c=r?.naturalWidth||o?.width||0,i=r?.naturalHeight||o?.height||0,a=n(e.getAttribute(\"srcset\")||e.getAttribute(\"data-srcset\"));a&&s(a,c,i,r||e)}const m=document.querySelectorAll(\"div, section, header, footer, a, li, figure, article, aside, span, button\"),f=Math.min(m.length,3e3);for(let t=0;t<f;t++){const e=m[t];try{const t=r(getComputedStyle(e).backgroundImage);if(!t)continue;const n=e.getBoundingClientRect();s(t,n.width,n.height,e)}catch{}}const p=[],y=new Set;if(u){const e=t(u);e&&(p.push(e),y.add(e),l.delete(e))}const b=[...l.entries()].sort((t,e)=>e[1]-t[1]).map(([t])=>t);for(const t of b)y.has(t)||(y.add(t),p.push(t));const S=new Set,A=[];function w(e){const n=t(e);!n||S.has(n)||n.startsWith(\"blob:\")||(S.add(n),A.push(n))}const v=document.querySelectorAll(\"video\");for(let t=0;t<v.length&&A.length<30;t++){const e=v[t];e.currentSrc?w(e.currentSrc):e.src&&w(e.src),e.querySelectorAll(\"source\").forEach(t=>{t.src&&w(t.src)}),[\"data-src\",\"data-lazy-src\"].forEach(t=>{const n=e.getAttribute(t);n&&w(n)})}const q=document.querySelectorAll(\"a[href]\");for(let t=0;t<q.length&&A.length<30;t++){const e=q[t].href;/\\.(mp4|webm|mov|mkv|m3u8)(\\?|$)/i.test(e)&&w(e)}const E=/youtube\\.com\\/(embed|watch)|youtu\\.be|player\\.vimeo\\.com|vimeo\\.com\\/\\d+|tiktok\\.com|dailymotion\\.com\\/(embed|video)|facebook\\.com\\/plugins\\/video/i,T=document.querySelectorAll(\"iframe\");for(let t=0;t<T.length&&A.length<30;t++){const e=T[t].src;e&&E.test(e)&&w(e)}const C=new Set,k=[];function R(t){const e=getComputedStyle(t);if(\"none\"===e.display||\"hidden\"===e.visibility||0===parseFloat(e.opacity))return!1;const n=t.getBoundingClientRect();return n.width>0&&n.height>0}const N=new Set([\"SCRIPT\",\"STYLE\",\"NOSCRIPT\",\"TEMPLATE\",\"TEXTAREA\",\"INPUT\",\"SELECT\",\"OPTION\",\"SVG\",\"CANVAS\",\"IFRAME\"]),W=new Map,I=[],M=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let x,z=0;for(;(x=M.nextNode())&&z<8e3;){z++;const t=x.nodeValue;if(!t||!t.trim())continue;const e=x.parentElement;e&&!N.has(e.tagName)&&(e.closest(\"script, style, noscript, template\")||R(e)&&(W.has(e)||(W.set(e,[]),I.push(e)),W.get(e).push(t)))}for(let t=0;t<I.length&&k.length<150;t++){let n=e(W.get(I[t]).join(\" \"));if(n.length<2)continue;if(!/[\\p{L}\\p{N}]/u.test(n))continue;n.length>500&&(n=n.slice(0,500)+\"\\u2026\");const r=n.toLowerCase();C.has(r)||(C.add(r),k.push(n))}return{title:e(o),link:location.href,images:p.slice(0,60),videos:A.slice(0,30),texts:k.slice(0,150)}}";
 
 // ====== Page picker (images / videos / text) inside the Add modal ======
 const pp = {
@@ -3079,27 +2831,22 @@ window.addEventListener("message", e => {
 });
 
 // ====== Bookmarklet ======
-function buildBookmarklet(){
+function bookmarkletCode(){
   const app = location.origin + location.pathname;
-  const code = `(function(){
-var d=(${extractPageData.toString()})();
-var A=${JSON.stringify(app)},O=${JSON.stringify(location.origin)};
-var q='?add=1&title='+encodeURIComponent(d.title||'')+'&url='+encodeURIComponent(d.link||'');
-var w=window.open(A+q,'ziLinkAdd'); if(!w) return;
-function h(e){ if(e.origin!==O||e.source!==w) return;
-  if(e.data&&e.data.type==='zi-ready'){ w.postMessage({type:'zi-page',data:d},O); window.removeEventListener('message',h); } }
-window.addEventListener('message',h);
-setTimeout(function(){ window.removeEventListener('message',h); },20000);
-})();`;
-  return "javascript:" + encodeURIComponent(code);
+  return "javascript:(function(){var d=(" + BM_FN_SRC + ")();var A=" + JSON.stringify(app) + ",O=" + JSON.stringify(location.origin) +
+    ";var q='?add=1&title='+encodeURIComponent(d.title||'')+'&url='+encodeURIComponent(d.link||'');" +
+    "var w=window.open(A+q,'ziLinkAdd');if(!w)return;" +
+    "function h(e){if(e.origin!==O||e.source!==w)return;if(e.data&&e.data.type==='zi-ready'){w.postMessage({type:'zi-page',data:d},O);window.removeEventListener('message',h);}}" +
+    "window.addEventListener('message',h);setTimeout(function(){window.removeEventListener('message',h);},20000);})();";
 }
 (function setupBookmarklet(){
   const a = document.getElementById("bmLink");
-  a.href = buildBookmarklet();
+  const code = bookmarkletCode();
+  a.href = code.replace(/ /g, "%20");
   a.addEventListener("click", e => { e.preventDefault(); alert("Drag this button to your bookmarks bar, then click it on any page."); });
   document.getElementById("bmCopyBtn").onclick = async () => {
-    try{ await navigator.clipboard.writeText(decodeURIComponent(a.href.slice(11))); setMsg("Code copied — create a bookmark and paste it as the URL (with javascript: in front).", false); }
-    catch{ prompt("Copy this:", a.href); }
+    try{ await navigator.clipboard.writeText(code); setMsg("Copied ✅ (starts with javascript:) — make a new bookmark and paste it in the URL field.", false); }
+    catch{ prompt("Copy this (the whole line):", code); }
   };
 })();
 
