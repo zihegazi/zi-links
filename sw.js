@@ -1,6 +1,6 @@
 // Zi_LINK service worker — bump VERSION whenever you change index.html so phones pick up the update.
-const VERSION = "zi-link-v7";
-const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
+const VERSION = "zi-link-v9";
+const SHELL = ["./", "index.html", "add.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 const CDN_OK = ["https://cdnjs.cloudflare.com/"];
 
 self.addEventListener("install", e => {

@@ -1,19 +1,9 @@
-# Zi_LINK (PWA)
+# Zi_LINK (PWA for Android)
 
-Gallery for your Google Sheet links + add/edit + share-to-add. All personal values live in **⚙️ Settings** (saved in the browser only), not in the code.
+Upload ALL of these files to the root of the GitHub repo (no subfolders):
+`index.html`, `add.html`, `sw.js`, `manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`
 
-## Publish on GitHub Pages
-1. New repo → upload everything in this folder (`index.html`, `sw.js`, `manifest.webmanifest` and the 3 `icon-*.png` files, all in the same folder — no subfolders).
-2. Repo → Settings → Pages → Source: *Deploy from a branch* → `main` / root.
-3. Open `https://<user>.github.io/<repo>/` → ⚙️ → paste the sheet link + the Apps Script link → Save.
-4. Chrome menu → *Install app* (Android: this also enables Share → Zi_LINK).
-
-## Settings
-- **Google Sheet link**: any link to the sheet tab (ID and gid are extracted). Must be shared as "Anyone with the link – Viewer".
-- **Add/Edit endpoint**: the Apps Script Web App `/exec` link.
-- **Add from any page (Chrome desktop)**: drag the ➕ button to the bookmarks bar; click it on any page to add that page (images/videos/text picker, like the extension).
-- **Edit password**: optional.
-- **Copy setup link**: puts the settings in the URL `#cfg=…` so a second device gets them in one tap. Keep it private.
-
-## Updating
-Change `index.html`, then bump `VERSION` in `sw.js` so installed copies refresh.
+- Opening the app icon -> `index.html` (the gallery).
+- Share a link from any Android app -> Zi_LINK -> `add.html` (a separate Add page, no gallery). Save or Cancel closes it and returns you to the app you were in.
+- Settings (the logo button in the gallery): sheet link (needs `gid`), Apps Script link, edit password, auto-fill on/off.
+- Updating: change the files, then bump `VERSION` in `sw.js`.

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#000000">
+<title>Zi_LINK — Add</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+  :root { --bg:#000; --text:#eee; --muted:#999; --btn:#222; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,"Segoe UI",Roboto,Tahoma,Arial,sans-serif; }
+  body { min-height:100dvh; padding:max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:10px; }
+  h1 { margin:0; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .field { display:flex; flex-direction:column; gap:4px; }
+  label { font-size:12px; color:var(--muted); }
+  input[type=text], textarea { width:100%; padding:10px; border-radius:0; border:none; border-bottom:1px solid #3a3a3a; background:transparent; color:var(--text); font-size:16px; font-family:inherit; }
+  input:focus, textarea:focus { outline:none; border-bottom-color:#7fd0ff; }
+  textarea { resize:none; }
+  .preview { display:none; width:96px; height:96px; object-fit:cover; border-radius:10px; background:#111; margin-top:6px; }
+  .links { font-size:12px; color:var(--muted); }
+  .links a { color:#7fd0ff; text-decoration:none; margin-right:10px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; padding:4px 0; }
+  .chip { font-size:13px; padding:5px 12px; border-radius:14px; border:1px solid #444; background:var(--btn); color:var(--muted); user-select:none; }
+  .chip.sel { background:rgba(157,255,157,.15); border-color:#9dff9d; color:#d8ffd8; font-weight:bold; }
+  .addrow { display:flex; gap:8px; }
+  .addrow input { flex:1; }
+  .btn { padding:9px 14px; border-radius:10px; border:1px solid #444; background:var(--btn); color:var(--text); font-size:14px; }
+  .stars { display:flex; gap:6px; font-size:30px; line-height:1; }
+  .star { color:#444; cursor:pointer; } .star.on { color:#ffd75e; }
+  #msg { font-size:13px; min-height:18px; }
+  .bar { position:sticky; bottom:0; display:flex; gap:10px; padding:10px 0 2px; background:linear-gradient(transparent, #000 30%); margin-top:auto; }
+  .bar .btn { flex:1; padding:13px; font-size:15px; }
+  .save { background:#2a6f3f; border-color:#2a6f3f; }
+  .save:disabled { opacity:.6; }
+  #done { position:fixed; inset:0; background:#000; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:24px; z-index:5; }
+  #done b { font-size:20px; }
+</style>
+</head>
+<body>
+  <h1>Add to Zi_LINK</h1>
+
+  <div class="field"><label>Title</label><textarea id="fTitle" rows="2"></textarea></div>
+  <div class="field"><label>Link</label><input id="fLink" type="text" inputmode="url" autocomplete="off"/></div>
+  <div class="field">
+    <label>Image</label>
+    <input id="fImage" type="text" inputmode="url" autocomplete="off"/>
+    <img id="preview" class="preview" alt=""/>
+    <div class="links"><a id="gImg" target="_blank" rel="noopener">Google images</a><a id="yImg" target="_blank" rel="noopener">Yandex images</a></div>
+  </div>
+  <div class="field"><label>Vid</label><input id="fVid" type="text" inputmode="url" autocomplete="off"/></div>
+  <div class="field"><label>Note</label><textarea id="fNote" rows="2"></textarea></div>
+
+  <div class="field">
+    <label>Type</label>
+    <div id="chips" class="chips"><span style="color:var(--muted);font-size:12px">Loading…</span></div>
+    <div class="addrow"><input id="newType" type="text" placeholder="Add new type…" autocomplete="off"/><button id="addType" class="btn" type="button">+ Add</button></div>
+  </div>
+
+  <div class="field"><label>Rate</label><div id="stars" class="stars"></div></div>
+
+  <div id="msg"></div>
+  <div class="bar">
+    <button id="cancelBtn" class="btn" type="button">Cancel</button>
+    <button id="saveBtn" class="btn save" type="button">Save</button>
+  </div>
+
+  <div id="done">
+    <b id="doneTitle">Saved ✅</b>
+    <div style="color:var(--muted)">You can switch back to your app now.</div>
+    <button class="btn" type="button" onclick="location.replace('./')">Open gallery</button>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+let S = {};
+try { S = JSON.parse(localStorage.getItem("ziLinkSettings") || "{}"); } catch {}
+const SHEET_ID = S.SHEET_ID || "", SHEET_GID = S.SHEET_GID || "", ENDPOINT = S.EDIT_ENDPOINT || "";
+const AUTO_FILL = S.AUTO_FILL !== false;
+
+// ---- what was shared to us (Android Share sheet): ?title=&text=&url=
+(function prefill(){
+  const q = new URLSearchParams(location.search);
+  const text = q.get("text") || "";
+  let link = q.get("url") || "";
+  if (!link) { const m = text.match(/https?:\/\/\S+/); if (m) link = m[0]; }
+  let title = q.get("title") || "";
+  if (!title && text) title = text.replace(/https?:\/\/\S+/g, "").trim();
+  if (title === link) title = "";
+  $("fTitle").value = title; $("fLink").value = link;
+  if (AUTO_FILL && link) autoFill(link);
+})();
+
+function detectOembedPlatform(url){
+  try{
+    const h = new URL(url).hostname.replace(/^www\./,"");
+    if(h.includes("youtube.com") || h.includes("youtu.be")) return "youtube";
+    if(h.includes("tiktok.com")) return "tiktok";
+    if(h.includes("vimeo.com")) return "vimeo";
+  }catch{}
+  return null;
+}
+function oembedEndpoint(p, link){
+  if(p==="youtube") return `https://www.youtube.com/oembed?url=${encodeURIComponent(link)}&format=json`;
+  if(p==="tiktok")  return `https://www.tiktok.com/oembed?url=${encodeURIComponent(link)}`;
+  if(p==="vimeo")   return `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(link)}`;
+  return null;
+}
+function autoFill(link){
+  const p = detectOembedPlatform(link), ep = p ? oembedEndpoint(p, link) : null;
+  if (!ep) return;
+  if (!$("fVid").value) $("fVid").value = link;
+  const yt = link.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (yt && !$("fImage").value) { $("fImage").value = `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg`; refreshImage(); }
+  fetch(ep).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j) return;
+    if (j.title && (!$("fTitle").value.trim() || $("fTitle").value.trim() === link)) { $("fTitle").value = j.title; refreshImage(); }
+    if (j.thumbnail_url && !$("fImage").value) { $("fImage").value = j.thumbnail_url; refreshImage(); }
+  }).catch(() => {});
+}
+
+// ---- image preview + search links
+function refreshImage(){
+  const u = $("fImage").value.trim(), p = $("preview");
+  if (/^https?:\/\//i.test(u)) { p.src = u; p.referrerPolicy = "no-referrer"; p.style.display = "block"; p.onerror = () => p.style.display = "none"; }
+  else p.style.display = "none";
+  const t = encodeURIComponent($("fTitle").value.trim());
+  $("gImg").href = "https://www.google.com/search?tbm=isch&q=" + t;
+  $("yImg").href = "https://yandex.com/images/search?text=" + t;
+}
+$("fImage").addEventListener("input", refreshImage);
+$("fTitle").addEventListener("input", refreshImage);
+refreshImage();
+
+// ---- rating 1..7
+let rate = 0;
+(function stars(){
+  const box = $("stars");
+  for (let i = 1; i <= 7; i++) {
+    const s = document.createElement("span"); s.className = "star"; s.textContent = "★";
+    s.onclick = () => { rate = (rate === i) ? 0 : i; [...box.children].forEach((c, k) => c.classList.toggle("on", k < rate)); };
+    box.appendChild(s);
+  }
+})();
+
+// ---- types (existing values from the sheet + new ones)
+const selected = new Set(); let allTypes = [];
+function renderChips(){
+  const box = $("chips"); box.innerHTML = "";
+  const names = [...allTypes];
+  selected.forEach(t => { if (!names.some(n => n.toLowerCase() === t.toLowerCase())) names.push(t); });
+  if (!names.length) { box.innerHTML = '<span style="color:var(--muted);font-size:12px">No types yet — add one below.</span>'; return; }
+  names.forEach(t => {
+    const c = document.createElement("span"); c.className = "chip" + (selected.has(t) ? " sel" : ""); c.textContent = t;
+    c.onclick = () => { selected.has(t) ? selected.delete(t) : selected.add(t); renderChips(); };
+    box.appendChild(c);
+  });
+}
+$("addType").onclick = () => {
+  const v = $("newType").value.trim(); if (!v) return;
+  const hit = allTypes.find(n => n.toLowerCase() === v.toLowerCase());
+  selected.add(hit || v); $("newType").value = ""; renderChips();
+};
+function loadTypes(){
+  if (!SHEET_ID) { renderChips(); return; }
+  const cb = "g" + Math.random().toString(36).slice(2);
+  const s = document.createElement("script");
+  window[cb] = json => {
+    try {
+      const cols = (json.table.cols || []).map(c => (c.label || "").trim().toLowerCase());
+      const i = cols.indexOf("type"), seen = new Map();
+      (json.table.rows || []).forEach(r => {
+        const v = r.c && r.c[i] && r.c[i].v != null ? String(r.c[i].v) : "";
+        v.split(",").map(x => x.trim()).filter(Boolean).forEach(x => { if (!seen.has(x.toLowerCase())) seen.set(x.toLowerCase(), x); });
+      });
+      allTypes = [...seen.values()].sort((a, b) => a.localeCompare(b));
+    } catch {}
+    renderChips(); s.remove(); delete window[cb];
+  };
+  s.src = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(SHEET_ID)}/gviz/tq?tqx=responseHandler:${cb}` + (SHEET_GID ? `&gid=${encodeURIComponent(SHEET_GID)}` : "");
+  s.onerror = () => { renderChips(); s.remove(); };
+  document.head.appendChild(s);
+  setTimeout(() => { if (window[cb]) { renderChips(); } }, 8000);
+}
+renderChips(); loadTypes();
+
+// ---- finish: close the app window so Android returns to the app you came from
+function finish(title){
+  $("doneTitle").textContent = title;
+  try { window.close(); } catch {}
+  // if the browser refused to close the window, show a small "done" screen instead
+  setTimeout(() => { $("done").style.display = "flex"; }, 450);
+}
+$("cancelBtn").onclick = () => finish("Cancelled");
+
+$("saveBtn").onclick = async () => {
+  const msg = $("msg");
+  if (!ENDPOINT || !SHEET_GID) { msg.style.color = "#ff8080"; msg.textContent = "Set the sheet link and the script link in the gallery's ⚙️ Settings first."; return; }
+  const payload = {
+    action: "add", gid: SHEET_GID,
+    title: $("fTitle").value, link: $("fLink").value, image: $("fImage").value, vid: $("fVid").value,
+    type: [...selected].join(", "), rate: rate ? String(rate) : "", note: $("fNote").value
+  };
+  msg.style.color = "var(--muted)"; msg.textContent = "Saving…"; $("saveBtn").disabled = true;
+  // keepalive: the request keeps going even if this window closes right after
+  const req = fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, keepalive: true, body: JSON.stringify(payload) })
+    .then(r => r.json().catch(() => ({ ok: true })));
+  try {
+    const res = await Promise.race([req, new Promise(r => setTimeout(() => r("timeout"), 1500))]);
+    if (res && res !== "timeout" && res.ok === false) { msg.style.color = "#ff8080"; msg.textContent = "Error: " + (res.error || "unknown"); $("saveBtn").disabled = false; return; }
+    finish("Saved ✅");
+  } catch (e) {
+    msg.style.color = "#ff8080"; msg.textContent = "Error: " + (e.message || e); $("saveBtn").disabled = false;
+  }
+};
+
+if (!ENDPOINT || !SHEET_GID) { $("msg").style.color = "#ffd75e"; $("msg").textContent = "Not set up yet — open the gallery and fill ⚙️ Settings."; }
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>

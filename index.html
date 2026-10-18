@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Zi_LINK</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#000000">
@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpolygon points='98,113 60,92 22,113 22,16 98,16' opacity='.35'/%3E%3Cpolygon fill='%23ff1200' points='98,109 60,88 22,109 22,12 98,12'/%3E%3C/svg%3E">
 <style>
 :root {
@@ -808,6 +809,17 @@ main {
 @media (min-width:701px){ .controls #settingsBtn{ position:absolute; left:8px; top:50%; transform:translateY(-50%); } }
 .paste-btn{ align-self:flex-start; padding:3px 4px; border:none; border-bottom:1px solid #3a3a3a; background:transparent; color:var(--muted); font-size:12px; cursor:pointer; }
 .paste-btn:hover{ border-bottom-color:#bbb; color:var(--text); }
+.set-check{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text); margin:4px 0 8px; cursor:pointer; }
+@media (max-width:700px){
+  main{ padding:8px; }
+  .grid{ gap:8px; }
+  .title{ font-size:13px; }
+  input, textarea, select{ font-size:16px; }
+  #editOverlay, #settingsOverlay{ padding:0; align-items:stretch; }
+  #editOverlay .modal-box, #settingsOverlay .modal-box{ width:100%; max-height:none; height:100%; border-radius:0; border:none; padding:14px; }
+  .modal-box.wide{ width:100%; }
+  .pp-grid{ grid-template-columns:repeat(3,1fr); }
+}
 .set-hint{ font-size:11px; color:var(--muted); line-height:1.5; }
 #setSheetParsed{ color:#9dff9d; }
 #setSheetParsed.bad{ color:#ff8080; }
@@ -1021,6 +1033,7 @@ main {
       <label>Edit password (optional)</label>
       <input id="setPassword" type="password" placeholder="(none)" autocomplete="off"/>
     </div>
+    <label class="set-check"><input type="checkbox" id="setAutoFill"/> Auto-fill image &amp; video from YouTube / TikTok / Vimeo links</label>
     <div class="modal-field">
       <label>Add from any page (Chrome desktop)</label>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -1056,7 +1069,7 @@ main {
    ⚙️  الإعدادات — عدّل بياناتك هنا بس، مفيش داعي تدور جوه الكود
    ══════════════════════════════════════════════════════════════════ */
 const SETTINGS_KEY = "ziLinkSettings";
-const SETTINGS_DEFAULTS = { SHEET_ID:"", SHEET_NAME:"List", SHEET_GID:"", EDIT_ENDPOINT:"", EDIT_PASSWORD:"" };
+const SETTINGS_DEFAULTS = { SHEET_ID:"", SHEET_NAME:"List", SHEET_GID:"", EDIT_ENDPOINT:"", EDIT_PASSWORD:"", AUTO_FILL:true };
 function loadSettings(){
   try{ return Object.assign({}, SETTINGS_DEFAULTS, JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}")); }
   catch{ return Object.assign({}, SETTINGS_DEFAULTS); }
@@ -2622,6 +2635,7 @@ function openSettings(){
   setEl.url.value = sheetUrlFromConfig();
   setEl.endpoint.value = CONFIG.EDIT_ENDPOINT || "";
   setEl.pass.value = CONFIG.EDIT_PASSWORD || "";
+  document.getElementById("setAutoFill").checked = CONFIG.AUTO_FILL !== false;
   setMsg("", false); showParsed();
   setEl.overlay.classList.add("show");
 }
@@ -2632,6 +2646,7 @@ function readSettingsForm(){
     SHEET_NAME: "",
     EDIT_ENDPOINT: setEl.endpoint.value.trim(),
     EDIT_PASSWORD: setEl.pass.value,
+    AUTO_FILL: document.getElementById("setAutoFill").checked,
   };
 }
 document.getElementById("settingsBtn").onclick = openSettings;
@@ -2698,7 +2713,7 @@ document.getElementById("setTestBtn").onclick = async () => {
 
   let image = "", vid = "";
   const yt = link.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if(yt){ image = `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg`; vid = link; }
+  if(yt && CONFIG.AUTO_FILL !== false){ image = `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg`; vid = link; }
 
   setTimeout(() => {
     if(!CONFIG.EDIT_ENDPOINT){ openSettings(); setMsg("Set the Add/Edit endpoint first, then share again.", true); return; }
@@ -2709,7 +2724,7 @@ document.getElementById("setTestBtn").onclick = async () => {
     document.getElementById("editImage").value = image;
     document.getElementById("editVid").value = vid;
     renderImageAltSearchLinks(title);
-    if(!window.__fromBm && link){
+    if(!window.__fromBm && link && CONFIG.AUTO_FILL !== false){
       const plat = detectOembedPlatform(link), ep = plat ? oembedEndpoint(plat, link) : null;
       if(ep){
         if(!document.getElementById("editVid").value) document.getElementById("editVid").value = link;
@@ -2896,10 +2911,17 @@ document.getElementById("installCheckBtn").onclick = async () => {
   try{
     const reg = await navigator.serviceWorker.getRegistration();
     if(!reg) bad("Service worker is not registered");
-    else { const st = reg.active || reg.waiting || reg.installing; ok("Service worker " + (st ? st.state : "?") + " (" + reg.scope + ")"); }
+    else {
+      const st = reg.active || reg.waiting || reg.installing; ok("Service worker " + (st ? st.state : "?") + " (" + reg.scope + ")");
+      navigator.serviceWorker.controller ? ok("This page is controlled by the service worker") : bad("This page isn't controlled by the service worker yet — reload the page once");
+    }
   }catch(e){ bad("Service worker: " + (e.message || e)); }
+  if(!deferredInstall){
+    rep.textContent = out.join("\n") + "\nWaiting a few seconds for Chrome…";
+    await new Promise(r => { const t = setTimeout(r, 6000); window.addEventListener("beforeinstallprompt", () => { clearTimeout(t); setTimeout(r, 50); }, { once: true }); });
+  }
   if(deferredInstall) ok("Chrome is offering to install — press Install app");
-  else { bad("Chrome isn't offering install right now"); out.push("→ لو كل اللي فوق ✓ يبقى Chrome شايل حالة قديمة: اقفل Chrome تماماً، وامسح بيانات الموقع (Site settings) وافتح اللينك تاني."); }
+  else { bad("Chrome isn't offering install right now"); out.push("→ الصفحة سليمة، والقرار هنا لـ Chrome. جرب: reload للصفحة وانتظر 10 ثواني، وبعدها شوف قايمة ⋮ لو فيها «Install app» أو «Open …»، وافتح chrome://webapks."); }
   rep.textContent = out.join("\n");
 };
 
@@ -2916,7 +2938,7 @@ document.getElementById("pasteLinkBtn").onclick = async () => {
   const rest = text.replace(link, "").trim();
   if(rest && !$("editTitle").value.trim()) $("editTitle").value = rest;
   const plat = detectOembedPlatform(link), ep = plat ? oembedEndpoint(plat, link) : null;
-  if(ep){
+  if(ep && CONFIG.AUTO_FILL !== false){
     if(!$("editVid").value) $("editVid").value = link;
     fetch(ep).then(r => r.ok ? r.json() : null).then(j => {
       if(!j) return;
