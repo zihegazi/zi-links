@@ -1,10 +1,15 @@
 // Zi_LINK service worker — bump VERSION whenever you change index.html so phones pick up the update.
-const VERSION = "zi-link-v4";
+const VERSION = "zi-link-v5";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png"];
 const CDN_OK = ["https://cdnjs.cloudflare.com/"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // Each file is cached on its own: one missing file must not make the whole install fail
+  e.waitUntil(
+    caches.open(VERSION)
+      .then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", e => {
