@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpolygon points='98,113 60,92 22,113 22,16 98,16' opacity='.35'/%3E%3Cpolygon fill='%23ff1200' points='98,109 60,88 22,109 22,12 98,12'/%3E%3C/svg%3E">
 <style>
 :root {
@@ -806,6 +806,8 @@ main {
 #settingsBtn svg{ height:18px; width:auto; display:block; overflow:visible; }
 #settingsBtn{ padding-bottom:8px !important; }
 @media (min-width:701px){ .controls #settingsBtn{ position:absolute; left:8px; top:50%; transform:translateY(-50%); } }
+.paste-btn{ align-self:flex-start; padding:3px 4px; border:none; border-bottom:1px solid #3a3a3a; background:transparent; color:var(--muted); font-size:12px; cursor:pointer; }
+.paste-btn:hover{ border-bottom-color:#bbb; color:var(--text); }
 .set-hint{ font-size:11px; color:var(--muted); line-height:1.5; }
 #setSheetParsed{ color:#9dff9d; }
 #setSheetParsed.bad{ color:#ff8080; }
@@ -890,6 +892,7 @@ main {
     <div class="modal-field">
       <label>Link</label>
       <input id="editLink" type="text"/>
+      <button type="button" id="pasteLinkBtn" class="paste-btn">📋 Paste copied link</button>
     </div>
     <div class="modal-field">
       <label>Image</label>
@@ -2866,6 +2869,8 @@ document.getElementById("installCheckBtn").onclick = async () => {
   const rep = document.getElementById("installReport");
   const out = [], ok = t => out.push("✓ " + t), bad = t => out.push("✗ " + t);
   rep.textContent = "Checking…";
+  const ua = navigator.userAgent, cv = (ua.match(/Chrome\/(\d+)/) || [])[1], av = (ua.match(/Android ([\d.]+)/) || [])[1];
+  out.push("Browser: " + (cv ? "Chrome/Chromium " + cv : "not Chrome?") + (av ? " · Android " + av : " · not Android"));
   location.protocol === "https:" ? ok("HTTPS") : bad("Not HTTPS (" + location.protocol + ")");
   if(matchMedia("(display-mode: standalone)").matches) ok("Already running as an installed app");
   try{
@@ -2875,6 +2880,7 @@ document.getElementById("installCheckBtn").onclick = async () => {
     if(!res.ok) throw new Error("manifest returned HTTP " + res.status);
     const m = await res.json();
     ok("Manifest loaded (" + (m.name || "?") + ")");
+    out.push("  id=" + (m.id || "-") + " · start_url=" + m.start_url + " · scope=" + m.scope + " · share_target=" + (m.share_target ? "yes" : "no"));
     const base = new URL(link.href);
     for(const size of ["192x192", "512x512"]){
       const ic = (m.icons || []).find(i => (i.sizes || "").split(" ").includes(size));
@@ -2884,6 +2890,10 @@ document.getElementById("installCheckBtn").onclick = async () => {
     }
   }catch(e){ bad("Manifest: " + (e.message || e)); }
   try{
+    const sw = await fetch("sw.js", { cache: "no-store" });
+    sw.ok ? ok("sw.js is reachable") : bad("sw.js: HTTP " + sw.status);
+  }catch(e){ bad("sw.js: " + (e.message || e)); }
+  try{
     const reg = await navigator.serviceWorker.getRegistration();
     if(!reg) bad("Service worker is not registered");
     else { const st = reg.active || reg.waiting || reg.installing; ok("Service worker " + (st ? st.state : "?") + " (" + reg.scope + ")"); }
@@ -2891,6 +2901,29 @@ document.getElementById("installCheckBtn").onclick = async () => {
   if(deferredInstall) ok("Chrome is offering to install — press Install app");
   else { bad("Chrome isn't offering install right now"); out.push("→ لو كل اللي فوق ✓ يبقى Chrome شايل حالة قديمة: اقفل Chrome تماماً، وامسح بيانات الموقع (Site settings) وافتح اللينك تاني."); }
   rep.textContent = out.join("\n");
+};
+
+
+// ====== Paste a copied link (fallback when the app can't be installed / no Share menu entry) ======
+document.getElementById("pasteLinkBtn").onclick = async () => {
+  let text = "";
+  try{ text = await navigator.clipboard.readText(); }
+  catch{ text = prompt("Paste the link here:") || ""; }
+  const m = (text || "").match(/https?:\/\/\S+/);
+  if(!m) return;
+  const link = m[0], $ = id => document.getElementById(id);
+  $("editLink").value = link;
+  const rest = text.replace(link, "").trim();
+  if(rest && !$("editTitle").value.trim()) $("editTitle").value = rest;
+  const plat = detectOembedPlatform(link), ep = plat ? oembedEndpoint(plat, link) : null;
+  if(ep){
+    if(!$("editVid").value) $("editVid").value = link;
+    fetch(ep).then(r => r.ok ? r.json() : null).then(j => {
+      if(!j) return;
+      if(j.title && (!$("editTitle").value.trim() || $("editTitle").value.trim() === link)) $("editTitle").value = j.title;
+      if(j.thumbnail_url && !$("editImage").value) $("editImage").value = j.thumbnail_url;
+    }).catch(() => {});
+  }
 };
 
 // ====== Service worker ======
