@@ -106,6 +106,12 @@ let S = {};
 try { S = JSON.parse(localStorage.getItem("ziLinkSettings") || "{}"); } catch {}
 const SHEET_ID = S.SHEET_ID || "", SHEET_GID = S.SHEET_GID || "", ENDPOINT = S.EDIT_ENDPOINT || "";
 const AUTO_FILL = S.AUTO_FILL !== false;
+const EDIT_PASSWORD = S.EDIT_PASSWORD || "";
+let locked = false;
+if (EDIT_PASSWORD) {
+  const pass = prompt("Enter the edit password:");
+  if (pass !== EDIT_PASSWORD) { if (pass !== null) alert("Wrong password"); locked = true; }
+}
 
 function detectOembedPlatform(url){
   try{
@@ -136,7 +142,7 @@ function setTitleIfEmpty(t){ t = (t||"").trim(); const f = $("fTitle"); if(t && 
   if (!title && text) title = text.replace(/https?:\/\/\S+/g, "").trim();
   if (title === link) title = "";
   $("fTitle").value = title; $("fLink").value = link;
-  if (link && AUTO_FILL) scanPage(link);
+  if (link && AUTO_FILL && !locked) scanPage(link);
 })();
 
 /* ---------- picker UI ---------- */
@@ -398,7 +404,7 @@ $("saveBtn").onclick = async () => {
   const msg = $("msg");
   if (!ENDPOINT || !SHEET_GID) { msg.style.color = "#ff8080"; msg.textContent = "Set the sheet link and the script link in the gallery's ⚙️ Settings first."; return; }
   const payload = {
-    action: "add", gid: SHEET_GID,
+    action: "add", gid: SHEET_GID, sid: SHEET_ID,
     title: $("fTitle").value, link: $("fLink").value, image: $("fImage").value, vid: $("fVid").value,
     type: [...selected].join(", "), rate: rate ? String(rate) : "", note: $("fNote").value
   };
@@ -414,6 +420,7 @@ $("saveBtn").onclick = async () => {
   }
 };
 
+if (locked) { $("saveBtn").disabled = true; $("msg").style.color = "#ff8080"; $("msg").textContent = "Locked — wrong or missing password. Cancel and share again."; }
 if (!ENDPOINT || !SHEET_GID) { $("msg").style.color = "#ffd75e"; $("msg").textContent = "Not set up yet — open the gallery and fill ⚙️ Settings."; }
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>

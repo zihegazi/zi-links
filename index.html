@@ -20,6 +20,13 @@
   --accent: #999;
   --btn: #222;
   --btn-hover: #444;
+  /* لوحة الألوان الثابتة للبابلز والأزرار */
+  --c-site: #d5b3ff;   /* السايت */
+  --c-star: #ff9ed2;   /* المميز (نجمة) */
+  --c-tag:  #7fd0ff;   /* التاجات */
+  --c-type: #9dff9d;   /* Type */
+  --c-rate: #ffd479;   /* Rate */
+  --accent2: #7fd0ff;  /* تأكيد الأزرار النشطة */
 }
 
 * { box-sizing:border-box; margin:0; }
@@ -179,18 +186,33 @@ main {
   border-top: 1px solid rgba(255,255,255,0.18);
 }
 
-.chip-site {
+/* Zi: .hashtag-chip.chip-site (specificity أعلى) عشان لون السايت ما يتغطاش بلون التاجات العادية */
+.hashtag-chip.chip-site {
   font-size: 11px;
   font-weight: 700;
   color: #d5b3ff;
-  background: rgba(213,179,255,0.1);
-  border-color: rgba(213,179,255,0.4);
+  background: rgba(213,179,255,0.14);
+  border-color: rgba(213,179,255,0.55);
 }
 
-.chip-site:hover {
-  background: rgba(213,179,255,0.22);
+.hashtag-chip.chip-site:hover {
+  background: rgba(213,179,255,0.28);
   color: #ecdcff;
 }
+
+.hashtag-chip.chip-star {
+  font-weight: 700;
+  color: #ff9ed2;
+  background: rgba(255,158,210,0.12);
+  border-color: rgba(255,158,210,0.55);
+}
+.hashtag-chip.chip-star:hover {
+  background: rgba(255,158,210,0.28);
+  color: #ffd0ea;
+}
+
+/* صفّين للبابلز: الرئيسي (سايت/تحذيرات/اسم/ريت) وتحته باقي التاجات */
+.hashtag-rows .hashtags + .hashtags { margin-top: 3px; }
 
 .hashtags {
   margin-top: 3px;
@@ -658,6 +680,28 @@ main {
   flex-wrap: wrap;
 }
 
+/* أعمدة الفلتر: الأعمدة الصغيرة تحت بعض (Order تحت Sort by، Flags تحت Rate)، وعمود Type هو الأطول بحد أقصى */
+.modal-col{ flex:0 0 auto; padding:0 18px; display:flex; flex-direction:column; gap:16px; }
+.modal-col:first-child{ padding-left:0; }
+.modal-col:last-child{ padding-right:0; }
+.modal-col + .modal-col{ border-left:1px solid #2a2a2a; }
+.modal-columns .modal-col .modal-field{ padding:0; border-left:none; }
+/* مفيش سكرول بار في بوباب الفلتر: عمود Type هو المرجع، وباقي القوائم (Rate/Flags/Tags/Featured)
+   بتتقسم لأعمدة صغيرة جنب بعض، وكل عمود فيه أقصى عدد عناصر = عدد عناصر Type (--filter-rows بتتحدد من الجافاسكريبت) */
+#filterOverlay #typeCheckboxes{ max-height:none; overflow:visible; }
+#filterOverlay #rateCheckboxes, #filterOverlay #flagsCheckboxes,
+#filterOverlay #tagCheckboxes, #filterOverlay #starCheckboxes{
+  display:grid;
+  grid-auto-flow:column;
+  grid-template-rows:repeat(var(--filter-rows, 20), auto);
+  column-gap:22px;
+  max-height:none; overflow:visible;
+}
+#filterOverlay .modal-box{ scrollbar-width:none; -ms-overflow-style:none; }
+#filterOverlay .modal-box::-webkit-scrollbar{ display:none; width:0; height:0; }
+#filterOverlay #starCheckboxes label .filter-opt-name{ color:var(--c-star); font-weight:600; }
+.filter-empty{ font-size:12px; color:var(--muted); padding:4px 0; }
+
 #statsOverlay .modal-box {
   width: fit-content;
   max-width: 95vw;
@@ -739,6 +783,18 @@ main {
 .stats-table .stats-clickable {
   cursor: pointer;
 }
+.stats-table .stats-selected {
+  background: rgba(80,160,255,0.35) !important;
+  color: #fff !important;
+  outline: 1px solid #5aa0ff;
+}
+.stats-multi {
+  display:flex; align-items:center; gap:5px;
+  font-size:12px; color:var(--muted); cursor:pointer; user-select:none;
+}
+.stats-multi input { margin:0; width:13px; height:13px; cursor:pointer; }
+#statsApplyBtn[hidden]{ display:none; }
+#statsApplyBtn:disabled{ opacity:.45; cursor:not-allowed; }
 .stats-table .stats-clickable:hover {
   background: rgba(255,255,255,0.14);
   color: var(--accent);
@@ -784,7 +840,8 @@ main {
   margin-top:8px;
   min-height:16px;
 }
-#reloadBtn.spinning{ animation: zi-spin 0.8s linear infinite; }
+#reloadBtn .rl-ico{ display:inline-block; }
+#reloadBtn.spinning .rl-ico{ animation: zi-spin 0.8s linear infinite; }
 @keyframes zi-spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 .bm-link{ padding:6px 12px; border-radius:12px; border:1px dashed #7fd0ff; color:#7fd0ff; font-size:13px; cursor:grab; }
 .modal-box.wide{ width:min(680px,94vw); }
@@ -823,8 +880,17 @@ main {
 .set-hint{ font-size:11px; color:var(--muted); line-height:1.5; }
 #setSheetParsed{ color:#9dff9d; }
 #setSheetParsed.bad{ color:#ff8080; }
-#settingsBtn.needs-setup{ animation: zi-pulse 1.2s ease-in-out infinite; }
-@keyframes zi-pulse{ 50%{ box-shadow:0 0 0 4px rgba(255,212,121,.45); } }
+/* تنبيه "لسه مفيش بيانات": أيقونة الـ SVG نفسها بتنبض وبتتوهج */
+@media (max-width:700px){ .controls #settingsBtn{ position:relative; } }
+#settingsBtn.needs-setup svg{
+  color:#ffd479;
+  transform-origin:center;
+  animation: zi-pulse 1.4s ease-in-out infinite;
+}
+@keyframes zi-pulse{
+  0%,100%{ transform:scale(1);    filter:drop-shadow(0 0 0 rgba(255,212,121,0)); }
+  50%    { transform:scale(1.18); filter:drop-shadow(0 0 5px rgba(255,212,121,.95)) drop-shadow(0 0 11px rgba(255,212,121,.6)); }
+}
 
 /* top bar: no frames, just a thin line under each control */
 .controls input, .controls select, .controls button, .file-btn{
@@ -834,17 +900,102 @@ main {
   background:transparent; border-bottom-color:#bbb;
 }
 .controls input:focus, .controls select:focus{ outline:none; border-bottom-color:#7fd0ff; }
+
+/* ===== Zi UI refresh ===== */
+/* خط البابلز أوضح: أكبر شوية وأسمك */
+.hashtags .hashtag-chip{ font-size:12.5px; font-weight:500; padding:1px 8px; letter-spacing:.1px; }
+.hashtags .hashtag-chip.chip-site, .hashtags .hashtag-chip.chip-star{ font-weight:700; }
+.hashtags .hashtag-chip{ filter:brightness(1.12); }
+/* بابلز الكارت: رجعت شكل الـ pill (إطار خفيف حوالين الكلمة) */
+.hashtags{ gap:4px; }
+.hashtag-chip.chip-site{ color:var(--c-site); }
+.hashtag-chip.chip-star{ color:var(--c-star); }
+/* تباين أعلى: ألوان البابلز موزعة بالتساوي على الـ hue (أزرق/ماجنتا/أخضر/برتقالي/بنفسجي)
+   وأي اتنين جنب بعض في الصف الرئيسي (سايت ← ستار ← Type ← Rate) بينهم فرق لون كبير */
+:root{
+  --c-site:#4db8ff; --c-star:#ff5ccf; --c-type:#5dff7a; --c-rate:#ffb02e; --c-tag:#b78cff;
+}
+.hashtags .hashtag-chip{ filter:none; border-width:1.5px; }
+.hashtag-chip{ color:#fff; background:rgba(183,140,255,.30); border-color:rgba(183,140,255,.8); }
+.hashtag-chip:hover{ background:rgba(183,140,255,.50); color:#fff; }
+.hashtag-chip.chip-site{ color:#fff; background:rgba(77,184,255,.30); border-color:rgba(77,184,255,.85); }
+.hashtag-chip.chip-site:hover{ background:rgba(77,184,255,.50); color:#fff; }
+.hashtag-chip.chip-star{ color:#fff; background:rgba(255,92,207,.30); border-color:rgba(255,92,207,.85); }
+.hashtag-chip.chip-star:hover{ background:rgba(255,92,207,.50); color:#fff; }
+.hashtag-chip.chip-type{ color:#fff; background:rgba(93,255,122,.30); border-color:rgba(93,255,122,.8); }
+.hashtag-chip.chip-type:hover{ background:rgba(93,255,122,.50); color:#fff; }
+.hashtag-chip.chip-rate{ color:#fff; background:rgba(255,176,46,.30); border-color:rgba(255,176,46,.85); }
+.hashtag-chip.chip-rate:hover{ background:rgba(255,176,46,.50); color:#fff; }
+
+/* الصف التاني (التاجات): من غير بابلز، كلمات بيضا بينها فاصل | ومسافات قليلة */
+.hashtags.tags-rest{ gap:2px 0; }
+.hashtags.tags-rest .hashtag-chip{ background:none; border:none; border-radius:0; padding:0; color:#fff; }
+.hashtags.tags-rest .hashtag-chip:hover{ background:none; color:#fff; text-decoration:underline; }
+.hashtags.tags-rest .hashtag-chip:not(:last-child)::after{ content:"|"; display:inline-block; margin:0 5px; color:#666; text-decoration:none; }
+
+/* أزرار أيقونات دايرية بدون نص ولا إطار */
+.quickbar{ display:contents; }
+.controls .ibtn{
+  width:34px; height:34px; padding:0 !important;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  border:none !important; border-radius:50% !important;
+  background:transparent; color:var(--text);
+  transition:background .15s, color .15s, transform .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.controls .ibtn svg{ width:19px; height:19px; display:block; }
+.controls .ibtn:hover{ background:rgba(255,255,255,.08) !important; }
+.controls .ibtn:active{ background:rgba(127,208,255,.18) !important; color:var(--accent2); transform:scale(.92); }
+.controls .ibtn.has-lbl{ width:auto; padding:0 12px 0 10px !important; border-radius:17px !important; }
+.controls .ibtn .lbl{ font-size:13px; }
+#reloadBtn .rl-ico{ display:inline-flex; }
+
+/* الكروت: زوايا أنعم، وظل/توهج خفيف عند الضغط */
+.thumb{ border-radius:14px; transition:transform .15s ease, box-shadow .2s ease; }
+.content{ border-radius:12px; border-color:#1f1f1f; }
+.card:active .thumb{ transform:scale(.985); box-shadow:0 0 0 2px rgba(127,208,255,.35), 0 8px 20px rgba(0,0,0,.65); }
+
+/* سطر search | lens | yandex أخف وأهدى */
+.details{ font-size:11px; opacity:.65; }
+.details:hover{ opacity:1; }
+
+/* ظهور ناعم للكروت لما تتحمل أو تتفلتر */
+.card{ animation: zi-in .28s ease both; }
+@keyframes zi-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .card{ animation:none; } #settingsBtn.needs-setup svg{ animation:none; filter:drop-shadow(0 0 4px rgba(255,212,121,.8)); } }
+
+/* الحلقة تقف أول ما أي نافذة (إعدادات/تعديل/فلتر) تتفتح */
+body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filter:none; color:inherit; }
+
+/* موبايل: الأزرار الأساسية في شريط تحت قريب من الإبهام */
+@media (max-width:700px){
+  .quickbar{
+    display:flex; justify-content:space-around; align-items:center;
+    position:fixed; left:0; right:0; bottom:0; z-index:1500;
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    background:rgba(10,10,10,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-top:1px solid #222;
+  }
+  .controls .ibtn.has-lbl{ width:40px; height:40px; padding:0 !important; border-radius:50% !important; }
+  .controls .ibtn.has-lbl .lbl{ display:none; }
+  .controls .ibtn{ width:40px; height:40px; }
+  .controls .ibtn svg{ width:22px; height:22px; }
+  main{ padding-bottom:calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+
 </style>
 </head>
 <body>
 
 <div class="controls">
 <button id="settingsBtn" title="Settings"><svg viewBox="3.2 0.4 24.6 21.3" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.622 2.184-3.589.26-7.989.779q-.137 0-.136.195l2.776 8.314c.068.13.271-.13 2.234-2.079l1.693-1.754-.136.39-2.302 4.223-2.844 5.196-1.151 2.145-.406.845h.204c.136.065 12.188-.13 13-.195h.406v-.455a110 110 0 0 0-1.489-7.86l-1.219 1.039-1.829 1.494 2.031-5.196c3.114-7.99 2.844-7.341 2.708-7.405q-.34-.131-1.964.065m10.225-.909L21.85 2.38l-3.318.909c-.406.13-.406.13-.204 1.169l1.693 10.264c.136.13 2.776.649 2.979.649l.204-.325c.542-1.885 3.792-13.512 3.995-13.967q.134-.261-1.354.13m-5.416 15.2q-1.49.26-2.234 1.364c-.204.39-.204.455-.204 1.039 0 .455 0 .585.204.909.136.325.745.909 1.151 1.104 1.354.649 3.047.39 4.063-.585q.947-1.105.475-2.274c-.204-.39-.813-1.039-1.287-1.234a4.07 4.07 0 0 0-2.167-.325"/></svg></button>
-<button id="homeButton" title="Scroll to top">◮</button>
-<button id="reloadBtn" title="Reload data from the sheet without refreshing the page">⟳</button>
-<button id="addCardBtn" title="Add a new card to the sheet">➕</button>
-
-
+<div class="quickbar">
+<button id="homeButton" class="ibtn" title="Scroll to top" aria-label="Top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<button id="reloadBtn" class="ibtn" title="Reload data from the sheet without refreshing the page" aria-label="Reload"><span class="rl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></span></button>
+<button id="addCardBtn" class="ibtn" title="Add a new card to the sheet" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button id="filterBtn" class="ibtn has-lbl" title="Filter &amp; sort" aria-label="Filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg><span class="lbl">Filter</span></button>
+<button id="statsBtn" class="ibtn has-lbl" title="Stats" aria-label="Stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span class="lbl">Stats</span></button>
+</div>
 
   <label>View</label>
   <select id="colsSelect">
@@ -865,13 +1016,11 @@ main {
     <option value="desc">Descend</option>
   </select>
 
-  <button id="filterBtn">Filter</button>
-  <button id="statsBtn">Stats</button>
     <label class="file-btn">
     Load File
     <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json"/>
   </label>
-  <button id="resetAllBtn" title="Clears the sort, filter, and search, and goes back to the default view">➖</button>
+  <button id="resetAllBtn" class="ibtn" title="Clears the sort, filter, and search, and goes back to the default view" aria-label="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
 
   <input id="search" type="search" placeholder="Search: cat dog | puppy -tiktok "cute cat""/>
   <span id="count" style="color:var(--muted); font-size:13px; padding-left:6px;">0</span>
@@ -949,6 +1098,7 @@ main {
   <div class="modal-box">
     <h3>Filter &amp; Sort</h3>
     <div class="modal-columns">
+      <div class="modal-col">
       <div class="modal-field">
         <label>Sort by</label>
         <div class="popup-radio-list">
@@ -967,13 +1117,11 @@ main {
           <label><input type="radio" name="sortOrderRadio" value="desc"> Descend</label>
         </div>
       </div>
+      </div>
+      <div class="modal-col">
       <div class="modal-field">
         <label>Rate</label>
         <div class="dropdown-content" id="rateCheckboxes"></div>
-      </div>
-      <div class="modal-field">
-        <label>Type</label>
-        <div class="dropdown-content" id="typeCheckboxes"></div>
       </div>
       <div class="modal-field">
         <label>Flags</label>
@@ -986,9 +1134,24 @@ main {
           <label><span class="filter-opt-name"><input type="checkbox" value="noimage"> 🖼️ No Image</span><span class="filter-opt-count flag-count" data-flag="noimage"></span></label>
         </div>
       </div>
+      </div>
+      <div class="modal-col">
+      <div class="modal-field">
+        <label>Type</label>
+        <div class="dropdown-content" id="typeCheckboxes"></div>
+      </div>
+      </div>
+      <div class="modal-col">
       <div class="modal-field">
         <label>Tags</label>
         <div class="dropdown-content" id="tagCheckboxes"></div>
+      </div>
+      </div>
+      <div class="modal-col">
+      <div class="modal-field">
+        <label>★ Featured</label>
+        <div class="dropdown-content" id="starCheckboxes"></div>
+      </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -1008,7 +1171,9 @@ main {
       <table class="stats-table" id="statsTable"></table>
     </div>
     <div class="modal-actions">
+      <label class="stats-multi" title="Select several cells, then press Apply"><input type="checkbox" id="statsMultiChk"> Multi-select</label>
       <div class="modal-actions-right">
+        <button id="statsApplyBtn" hidden disabled>Apply</button>
         <button id="statsCloseBtn" class="save-btn">Close</button>
       </div>
     </div>
@@ -1211,6 +1376,7 @@ function diceSimilarity(a, b){
 
 // بيتحسب مرة واحدة بعد كل تحميل بيانات جديد
 function computeDuplicates(){
+  rebuildTagVocab();
   duplicateLinkMap = new Map();
   similarTitleMap  = new Map();
 
@@ -1267,13 +1433,43 @@ function computeDuplicates(){
   }
 }
 
-// نفس منطق استخراج الهاشتاجات/الأقواس من العنوان المستخدم في الكروت، بس كدالة قابلة لإعادة الاستخدام في الفلتر
-function getItemTags(it){
-  // بنجمع العنوان والنوت مع بعض عشان الهاشتاجات/الأقواس تتاخد من الاتنين
+// ====== الهاشتاجات التلقائية ======
+// أي كلمة/عبارة اتكتبت مرة بين أقواس أو بعد # في أي بوست بتدخل "قاموس الهاشتاجات"،
+// وبعد كده أي بوست تاني فيه نفس الكلمة (حتى من غير أقواس) بياخدها كهاشتاج لوحده.
+// المقارنة بتتجاهل: الحروف الكبيرة/الصغيرة، التشكيل، وفروق (أ/إ/آ/ا) و(ى/ي) و(ة/ه)، وبتقبل "ال" التعريف قبل الكلمة.
+function tagNorm(s){
+  return (s||"").toLowerCase().normalize("NFKC")
+    .replace(/[\u064B-\u065F\u0670\u0640]/g,"")
+    .replace(/[إأآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه");
+}
+function tagTokens(s){ return tagNorm(s).split(/[^\p{L}\p{N}]+/u).filter(Boolean); }
+
+let tagVocabByFirst = new Map(); // أول كلمة -> [{label,tokens,key}]
+let tagVocabByKey   = new Map(); // المفتاح الكامل -> {label,tokens,key}
+let itemTagCache    = new WeakMap();
+
+const TAG_BRACKET_RE = /\(([^()]+)\)|\[([^\[\]]+)\]|\{([^{}]+)\}|<([^<>]+)>|"([^"]+)"|“([^”]+)”|«([^»]+)»/g;
+
+// أي عنصر فيه قيمة في عمود Type أولها نجمة (* أو ★ ...) = عنصر مميز: عنوانه بيتحول لتاج رئيسي ويتدوّر عليه في أسامي/نوتس العناصر التانية
+function isNameItem(it){
+  return splitValues(it.type).some(v=>/^\s*[*＊★☆⭐✭✮✯✰⁎]/.test(v));
+}
+// نفس المنطق على النوت: كل جزء (مفصول بفاصلة/سطر/|) في نوت العنصر المميز بيتعامل كاسم/تاج مميز
+function noteNamesOf(it){
+  if(!isNameItem(it) || !it.note) return [];
+  return String(it.note).replace(TAG_BRACKET_RE," ").replace(/#\S+/g," ")
+    .split(/[,،;؛\n|]+/).map(x=>x.replace(/\s+/g," ").trim()).filter(Boolean);
+}
+function nameTagOf(it){
+  if(!isNameItem(it)) return "";
+  return (it.title || "").replace(TAG_BRACKET_RE," ").replace(/#\S+/g," ").replace(/\s+/g," ").trim();
+}
+
+// الاستخراج الصريح (# أو أقواس) من العنوان والنوت
+function extractExplicitTags(it){
   const rawText = (it.title || "") + " " + (it.note || "");
   const hashtags = [...rawText.matchAll(/#(\S+)/g)].map(m => m[1]);
-  const bracketRe = /\(([^()]+)\)|\[([^\[\]]+)\]|\{([^{}]+)\}|<([^<>]+)>|"([^"]+)"|“([^”]+)”|«([^»]+)»/g;
-  const bracketed = [...rawText.matchAll(bracketRe)]
+  const bracketed = [...rawText.matchAll(TAG_BRACKET_RE)]
     .flatMap(m => {
       const raw = (m.slice(1).find(g => g !== undefined) || "").trim();
       if (!raw) return [];
@@ -1283,6 +1479,99 @@ function getItemTags(it){
   return uniqueCI([...hashtags, ...bracketed]);
 }
 
+// بيتبني من جديد كل ما الداتا تتغير (بيتنادى من computeDuplicates)
+function rebuildTagVocab(){
+  tagVocabByFirst = new Map();
+  tagVocabByKey   = new Map();
+  itemTagCache    = new WeakMap();
+  const addVocab = (label, isName) => {
+    const toks = tagTokens(label);
+    if(!toks.length || toks.length > (isName ? 4 : 3)) return;
+    const key = toks.join(" ");
+    if(key.replace(/\s/g,"").length < 2) return;   // حرف واحد = مش هاشتاج
+    if(/^[\p{N}\s]+$/u.test(key)) return;           // أرقام بس (زي 2020) مش بتتعمم
+    const old = tagVocabByKey.get(key);
+    if(old){ if(isName) old.isName = true; return; }
+    const entry = { label, tokens: toks, key, isName: !!isName };
+    tagVocabByKey.set(key, entry);
+    if(!tagVocabByFirst.has(toks[0])) tagVocabByFirst.set(toks[0], []);
+    tagVocabByFirst.get(toks[0]).push(entry);
+  };
+  // أسامي السايتات/الستارز الأول عشان شكل كتابتها هو المعتمد
+  items.forEach(it=>{
+    const n = nameTagOf(it); if(n) addVocab(n, true);
+    noteNamesOf(it).forEach(x=>addVocab(x, true));
+  });
+  items.forEach(it=> extractExplicitTags(it).forEach(label=> addVocab(label, false)));
+}
+
+function tokMatch(textTok, vocTok){
+  return textTok === vocTok || textTok === "ال"+vocTok || textTok === "وال"+vocTok;
+}
+
+function getItemTags(it){
+  const cached = itemTagCache.get(it);
+  if(cached) return cached;
+
+  const result = [];
+  const used = new Set();
+  const names = new Set();   // التاجات اللي هي اسم سايت/ستار
+  let main = "";             // التاج الرئيسي (اسم العنصر نفسه لو Type بتاعه site/star)
+
+  // 0) اسم العنصر نفسه كتاج رئيسي
+  const mains = [];
+  [nameTagOf(it), ...noteNamesOf(it)].forEach((own, idx)=>{
+    if(!own) return;
+    const entry = tagVocabByKey.get(tagTokens(own).join(" "));
+    if(!entry || used.has(entry.key)) return;
+    used.add(entry.key); result.push(entry.label); names.add(entry.label); mains.push(entry.label);
+    if(idx === 0) main = entry.label;
+  });
+
+  // 1) الصريحة (بنوحّد الشكل مع أول كتابة اتسجلت في القاموس)
+  extractExplicitTags(it).forEach(label=>{
+    const key = tagTokens(label).join(" ");
+    const entry = tagVocabByKey.get(key);
+    const finalLabel = entry ? entry.label : label;
+    const k = (entry ? entry.key : key) || label.toLowerCase();
+    if(used.has(k)) return;
+    used.add(k);
+    result.push(finalLabel);
+    if(entry && entry.isName) names.add(finalLabel);
+  });
+
+  // 2) التلقائية: أي كلمة من القاموس موجودة في العنوان/النوت حتى من غير أقواس
+  const toks = tagTokens((it.title || "") + " " + (it.note || ""));
+  const auto = [];
+  for(let i=0;i<toks.length;i++){
+    const t = toks[i];
+    const keys = [t];
+    if(t.startsWith("ال")) keys.push(t.slice(2));
+    else if(t.startsWith("وال")) keys.push(t.slice(3));
+    keys.forEach(k=>{
+      const list = tagVocabByFirst.get(k);
+      if(!list) return;
+      list.forEach(e=>{
+        if(used.has(e.key)) return;
+        for(let j=0;j<e.tokens.length;j++){
+          if(i+j >= toks.length || !tokMatch(toks[i+j], e.tokens[j])) return;
+        }
+        used.add(e.key);
+        auto.push(e.label);
+        if(e.isName) names.add(e.label);
+      });
+    });
+  }
+  auto.sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
+  result.push(...auto);
+  result.names = names;
+  result.main  = main;
+  result.mains = mains;
+
+  itemTagCache.set(it, result);
+  return result;
+}
+
 function populateFilters(){
   // بنحفظ القيم المختارة حاليًا (Rate/Type/Tag) قبل ما نمسح الـ checkboxes ونعيد بنائها،
   // عشان أي فلتر شغال ميتفكّش بسبب تعديل كارت أو إضافة واحد جديد
@@ -1290,7 +1579,7 @@ function populateFilters(){
     new Set([...document.querySelectorAll(`#${containerId} input:checked`)].map(i=>i.value.toLowerCase()));
   const checkedRates = keepChecked("rateCheckboxes");
   const checkedTypes = keepChecked("typeCheckboxes");
-  const checkedTags   = keepChecked("tagCheckboxes");
+  const checkedTags   = new Set([...keepChecked("tagCheckboxes"), ...keepChecked("starCheckboxes")]);
 
   const rates=uniqueCI(items.flatMap(i=>splitValues(i.rate)));
   const types=uniqueCI(items.flatMap(i=>splitValues(i.type)));
@@ -1309,16 +1598,31 @@ function populateFilters(){
     typeC.appendChild(l);
   });
 
+  // أقصى عدد عناصر في أي عمود = عدد عناصر عمود Type (الباقي بيتقسم لأعمدة جنب بعض)
+  document.getElementById("filterOverlay").style.setProperty("--filter-rows", Math.max(types.length, 1));
+
   // أكتر 10 هاشتاجات/تاجات (المستخرجة من العنوان) تكرارًا، بنفس شكل باقي الأعمدة
   const tagCounts = new Map();
+  const starCounts = new Map();   // الأسماء المميزة (نجمة) + كل اسم متكرر كام عنصر
   items.forEach(it=>{
-    getItemTags(it).forEach(t=>{
+    const its = getItemTags(it);
+    its.forEach(t=>{
       const key = t.toLowerCase();
-      if(!tagCounts.has(key)) tagCounts.set(key, { label:t, count:0 });
-      tagCounts.get(key).count++;
+      const m = its.names && its.names.has(t) ? starCounts : tagCounts;
+      if(!m.has(key)) m.set(key, { label:t, count:0 });
+      m.get(key).count++;
     });
   });
-  const topTags = [...tagCounts.values()].sort((a,b)=>b.count-a.count).slice(0,15);
+  const topTags = [...tagCounts.values()].sort((a,b)=>b.count-a.count).slice(0, Math.max(types.length,1));
+  const starC = document.getElementById("starCheckboxes");
+  starC.innerHTML = "";
+  const stars = [...starCounts.values()].sort((a,b)=>b.count-a.count || a.label.localeCompare(b.label)).slice(0, Math.max(types.length,1));
+  stars.forEach(({label,count})=>{
+    let l=document.createElement("label");
+    l.innerHTML=`<span class="filter-opt-name"><input type="checkbox" value="${label}"${checkedTags.has(label.toLowerCase())?" checked":""}> ${label}</span><span class="filter-opt-count">(${count})</span>`;
+    starC.appendChild(l);
+  });
+  if(!stars.length) starC.innerHTML = '<div class="filter-empty">—</div>';
   const tagC = document.getElementById("tagCheckboxes");
   tagC.innerHTML = "";
   topTags.forEach(({label,count})=>{
@@ -1549,40 +1853,44 @@ function buildCard(it){
       });
     }
 
-    // بابل واحد يجمع: علامات التحذير الأول، وبعدين الهاشتاج/الأقواس، وبعدين Type، وبعدين Rate
+    // صفّين: (1) الرئيسي: السايت، التاج الرئيسي (اسمه)، أسامي سايت/ستار، Type، الريت  (2) باقي التاجات
     let tagsEl=null;
-    if(siteName || flagDefs.length || searchTags.length || itemTypes.length || itemRates.length){
+    if(siteName || searchTags.length || itemTypes.length || itemRates.length){
       tagsEl=document.createElement("div");
-      tagsEl.className="hashtags";
+      tagsEl.className="hashtag-rows";
+      const row1=document.createElement("div"); row1.className="hashtags tags-main";
+      const row2=document.createElement("div"); row2.className="hashtags tags-rest";
+      const tagClick = tag => ()=>{ searchEl.value = tag; applyFilters(); };
+      const nameSet = searchTags.names || new Set();
 
       if(siteName){
-        tagsEl.appendChild(makeChip(`(${siteName})`, "chip-site", ()=>{
+        row1.appendChild(makeChip(siteName, "chip-site", ()=>{
           searchEl.value = siteName;
           applyFilters();
         }));
       }
 
-      flagDefs.forEach(f=>{
-        const badge=makeChip(f.label, f.cls, f.onClick);
-        badge.title=f.tip;
-        tagsEl.appendChild(badge);
-      });
+      // علامات التحذير (Duplicate/Similar/Dead/No Image...) مش بتظهر كبابلز؛ لسه شغالة في الفلتر والإحصائيات
+
+      const mainSet = new Set(searchTags.mains || []);
+      (searchTags.mains || []).forEach(m=> row1.appendChild(makeChip(m, "chip-star", tagClick(m))));
 
       searchTags.forEach(tag=>{
-        const label = /^\S+$/.test(tag) ? "#"+tag : tag;
-        tagsEl.appendChild(makeChip(label, "", ()=>{
-          searchEl.value = tag;
-          applyFilters();
-        }));
+        if(mainSet.has(tag)) return;
+        if(nameSet.has(tag)) row1.appendChild(makeChip(tag, "chip-star", tagClick(tag)));
+        else row2.appendChild(makeChip(tag, "", tagClick(tag)));
       });
 
       itemTypes.forEach(t=>{
-        tagsEl.appendChild(makeChip(t, "chip-type", ()=>checkFilterBox("typeCheckboxes", t)));
+        row1.appendChild(makeChip(t, "chip-type", ()=>checkFilterBox("typeCheckboxes", t)));
       });
 
       itemRates.forEach(r=>{
-        tagsEl.appendChild(makeChip(r, "chip-rate", ()=>checkFilterBox("rateCheckboxes", r)));
+        row1.appendChild(makeChip(r, "chip-rate", ()=>checkFilterBox("rateCheckboxes", r)));
       });
+
+      if(row1.childNodes.length) tagsEl.appendChild(row1);
+      if(row2.childNodes.length) tagsEl.appendChild(row2);
     }
 
     const details=document.createElement("div");
@@ -1654,6 +1962,42 @@ function setFlagFilter(value){
 
 let statsNoRateOnly = false;
 let statsNoTypeOnly = false;
+let statsMultiSpecs = null;   // لو متفعّل: مصفوفة من الخلايا المختارة (بيتطبق عليها OR)
+
+function itemHasFlag(item, flag){
+  if(flag==="duplicate") return duplicateLinkMap.has(item);
+  if(flag==="similar")   return similarTitleMap.has(item);
+  if(flag==="dead"){ const k=normalizeLink(item.link);  return !!(k && linkStatusCache[k]?.status==="dead"); }
+  if(flag==="deadvid"){ const k=normalizeLink(item.vid);  return !!(k && videoStatusCache[k]?.status==="dead"); }
+  if(flag==="brokenimg"){ const k=normalizeLink(item.image); return !!(k && imageStatusCache[k]?.status==="dead"); }
+  if(flag==="noimage") return !item.image && !item.vid;
+  return false;
+}
+function itemMatchesStatsSpec(item, {rate, type, flag} = {}){
+  if(rate === "none"){
+    if(splitValues(item.rate).map(Number).some(r=>r>=1 && r<=7)) return false;
+  } else if(rate != null){
+    if(!splitValues(item.rate).some(r=>r.toLowerCase()===String(rate).toLowerCase())) return false;
+  }
+  if(type === "__no_type__"){
+    if(splitValues(item.type).length !== 0) return false;
+  } else if(type != null){
+    if(!splitValues(item.type).some(t=>t.toLowerCase()===String(type).toLowerCase())) return false;
+  }
+  if(flag != null && !itemHasFlag(item, flag)) return false;
+  return true;
+}
+
+// تطبيق أكتر من خلية من الإحصائيات مع بعض
+function filterFromStatsMulti(specs){
+  document.querySelectorAll("#filterOverlay input[type=checkbox]").forEach(cb=> cb.checked = false);
+  searchEl.value = "";
+  statsNoRateOnly = false;
+  statsNoTypeOnly = false;
+  statsMultiSpecs = specs;
+  applyFilters(true);
+  document.getElementById("statsCloseBtn").click();
+}
 
 function filterFromStats({ rate, type, flag } = {}){
   // بنصفّر كل الفلاتر الحالية (Rate/Type/Flags/Tags/Search) ونطبّق بس اللي انت دوست عليه
@@ -1661,6 +2005,7 @@ function filterFromStats({ rate, type, flag } = {}){
   searchEl.value = "";
   statsNoRateOnly = false;
   statsNoTypeOnly = false;
+  statsMultiSpecs = null;
 
   if (rate === "none") statsNoRateOnly = true;
   else if (rate != null){
@@ -1684,7 +2029,7 @@ function filterFromStats({ rate, type, flag } = {}){
 }
 
 function applyFilters(fromStats){
-  if(!fromStats){ statsNoRateOnly = false; statsNoTypeOnly = false; }
+  if(!fromStats){ statsNoRateOnly = false; statsNoTypeOnly = false; statsMultiSpecs = null; }
   page = 1;
   let filtered = items.slice(); // نسخة، مش نفس الأراي — عشان الـ sort متأثرش على ترتيب الداتا الأصلي
 
@@ -1788,7 +2133,7 @@ if (selTypes.length)
     splitValues(x.type).some(t => selTypes.includes(t.toLowerCase()))
   );
 
-const selTags = [...document.querySelectorAll("#tagCheckboxes input:checked")]
+const selTags = [...document.querySelectorAll("#tagCheckboxes input:checked, #starCheckboxes input:checked")]
   .map(i => i.value.toLowerCase());
 
 if (selTags.length)
@@ -1801,6 +2146,8 @@ if (statsNoRateOnly)
   filtered = filtered.filter(x => !splitValues(x.rate).map(Number).some(r => r>=1 && r<=7));
 if (statsNoTypeOnly)
   filtered = filtered.filter(x => splitValues(x.type).length === 0);
+if (statsMultiSpecs && statsMultiSpecs.length)
+  filtered = filtered.filter(x => statsMultiSpecs.some(sp => itemMatchesStatsSpec(x, sp)));
 
 
   if(sortSelectEl.value==="title")
@@ -2004,6 +2351,7 @@ document.getElementById("editSaveBtn").onclick = async () => {
     action: isAddMode ? "add" : "edit",
     row:    isAddMode ? undefined : currentEditItem.row,
     gid:    CONFIG.SHEET_GID,
+    sid:    CONFIG.SHEET_ID,
     title:  document.getElementById("editTitle").value,
     link:   document.getElementById("editLink").value,
     image:  document.getElementById("editImage").value,
@@ -2110,7 +2458,7 @@ function openFilterPopup(){
   filterSnapshotRate = [...document.querySelectorAll("#rateCheckboxes input:checked")].map(cb=>cb.value);
   filterSnapshotType  = [...document.querySelectorAll("#typeCheckboxes input:checked")].map(cb=>cb.value);
   filterSnapshotFlags = [...document.querySelectorAll("#flagsCheckboxes input:checked")].map(cb=>cb.value);
-  filterSnapshotTags  = [...document.querySelectorAll("#tagCheckboxes input:checked")].map(cb=>cb.value);
+  filterSnapshotTags  = [...document.querySelectorAll("#tagCheckboxes input:checked, #starCheckboxes input:checked")].map(cb=>cb.value);
   document.getElementById("filterOverlay").classList.add("show");
 }
 function closeFilterPopup(){
@@ -2130,7 +2478,7 @@ document.getElementById("filterCancelBtn").onclick = () => {
   document.querySelectorAll("#rateCheckboxes input").forEach(cb=> cb.checked = filterSnapshotRate.includes(cb.value));
   document.querySelectorAll("#typeCheckboxes input").forEach(cb=> cb.checked = filterSnapshotType.includes(cb.value));
   document.querySelectorAll("#flagsCheckboxes input").forEach(cb=> cb.checked = filterSnapshotFlags.includes(cb.value));
-  document.querySelectorAll("#tagCheckboxes input").forEach(cb=> cb.checked = filterSnapshotTags.includes(cb.value));
+  document.querySelectorAll("#tagCheckboxes input, #starCheckboxes input").forEach(cb=> cb.checked = filterSnapshotTags.includes(cb.value));
   closeFilterPopup();
 };
 document.getElementById("filterOverlay").addEventListener("click", e=>{
@@ -2142,10 +2490,11 @@ document.getElementById("resetAllBtn").onclick = () => {
   searchEl.value = "";
   sortSelectEl.value = "none";
   orderSelectEl.value = "asc";
-  document.querySelectorAll("#rateCheckboxes input, #typeCheckboxes input, #flagsCheckboxes input, #tagCheckboxes input")
+  document.querySelectorAll("#rateCheckboxes input, #typeCheckboxes input, #flagsCheckboxes input, #tagCheckboxes input, #starCheckboxes input")
     .forEach(cb=> cb.checked = false);
   statsNoRateOnly = false;
   statsNoTypeOnly = false;
+  statsMultiSpecs = null;
   applyFilters();
 };
 
@@ -2195,6 +2544,34 @@ function computeStatsTable(){
   return { rateBuckets, typeCols, rows, NO_RATE, NO_TYPE };
 }
 
+// وضع الاختيار المتعدد في الإحصائيات
+const statsSel = new Map();   // key -> spec
+function statsKey(spec){ return JSON.stringify(spec); }
+function statsRefreshSel(){
+  document.querySelectorAll("#statsTable [data-key]").forEach(el=>{
+    el.classList.toggle("stats-selected", statsSel.has(el.dataset.key));
+  });
+  const btn = document.getElementById("statsApplyBtn");
+  const multi = document.getElementById("statsMultiChk").checked;
+  btn.hidden = !multi;
+  btn.disabled = statsSel.size === 0;
+  btn.textContent = statsSel.size ? `Apply (${statsSel.size})` : "Apply";
+}
+// بيرجّع هاندلر الضغط: لو Multi-select شغال بيعلّم الخلية، غير كده بينفذ على طول
+function statsGo(spec){
+  const fn = () => {
+    if(document.getElementById("statsMultiChk").checked){
+      const k = statsKey(spec);
+      if(statsSel.has(k)) statsSel.delete(k); else statsSel.set(k, spec);
+      statsRefreshSel();
+    } else {
+      filterFromStats(spec);
+    }
+  };
+  fn.spec = spec;
+  return fn;
+}
+
 function renderStatsTable(){
   let { rateBuckets, typeCols, rows, NO_RATE, NO_TYPE } = computeStatsTable();
   const table = document.getElementById("statsTable");
@@ -2221,6 +2598,7 @@ function renderStatsTable(){
       el.classList.add("stats-clickable");
       el.title = "Click to filter by this";
       el.addEventListener("click", onClick);
+      if(onClick.spec) el.dataset.key = statsKey(onClick.spec);
     }
     return el;
   };
@@ -2230,17 +2608,17 @@ function renderStatsTable(){
   headRow.appendChild(makeCell("th", "", { cls:"stats-row-label" }));
   typeCols.forEach(t=>{
     headRow.appendChild(makeCell("th", typeLabel(t), {
-      onClick: () => filterFromStats({ type: t })
+      onClick: statsGo({ type: t })
     }));
   });
-  headRow.appendChild(makeCell("th", "Total", { cls:"stats-total-col", onClick: () => filterFromStats({}) }));
+  headRow.appendChild(makeCell("th", "Total", { cls:"stats-total-col", onClick: statsGo({}) }));
   headRow.appendChild(makeCell("th", "", { cls:"stats-gap" }));
-  headRow.appendChild(makeCell("th", "Dead",        { onClick: () => filterFromStats({ flag:"dead" }) }));
-  headRow.appendChild(makeCell("th", "Dead Video",  { onClick: () => filterFromStats({ flag:"deadvid" }) }));
-  headRow.appendChild(makeCell("th", "Broken Img",  { onClick: () => filterFromStats({ flag:"brokenimg" }) }));
-  headRow.appendChild(makeCell("th", "No Image",    { onClick: () => filterFromStats({ flag:"noimage" }) }));
-  headRow.appendChild(makeCell("th", "Similar",     { onClick: () => filterFromStats({ flag:"similar" }) }));
-  headRow.appendChild(makeCell("th", "Duplicate",   { onClick: () => filterFromStats({ flag:"duplicate" }) }));
+  headRow.appendChild(makeCell("th", "Dead",        { onClick: statsGo({ flag:"dead" }) }));
+  headRow.appendChild(makeCell("th", "Dead Video",  { onClick: statsGo({ flag:"deadvid" }) }));
+  headRow.appendChild(makeCell("th", "Broken Img",  { onClick: statsGo({ flag:"brokenimg" }) }));
+  headRow.appendChild(makeCell("th", "No Image",    { onClick: statsGo({ flag:"noimage" }) }));
+  headRow.appendChild(makeCell("th", "Similar",     { onClick: statsGo({ flag:"similar" }) }));
+  headRow.appendChild(makeCell("th", "Duplicate",   { onClick: statsGo({ flag:"duplicate" }) }));
   thead.appendChild(headRow);
   table.appendChild(thead);
 
@@ -2254,14 +2632,14 @@ function renderStatsTable(){
     const rowLabel = r===NO_RATE ? "---" : `★ ${r}`;
     tr.appendChild(makeCell("td", rowLabel, {
       cls:"stats-row-label",
-      onClick: () => filterFromStats({ rate: r })
+      onClick: statsGo({ rate: r })
     }));
     typeCols.forEach(t=>{
       const v = row.types[t] || 0;
       colTotals.types[t] += v;
       tr.appendChild(makeCell("td", v, {
         zero: v===0,
-        onClick: () => filterFromStats({ rate: r, type: t })
+        onClick: statsGo({ rate: r, type: t })
       }));
     });
     colTotals.dead += row.dead;
@@ -2273,15 +2651,15 @@ function renderStatsTable(){
     colTotals.total += row.total;
     tr.appendChild(makeCell("td", row.total, {
       cls:"stats-total-col",
-      onClick: () => filterFromStats({ rate: r })
+      onClick: statsGo({ rate: r })
     }));
     tr.appendChild(makeCell("td", "", { cls:"stats-gap" }));
-    tr.appendChild(makeCell("td", row.dead,      { zero: row.dead===0,      onClick: () => filterFromStats({ rate: r, flag:"dead" }) }));
-    tr.appendChild(makeCell("td", row.deadvid,   { zero: row.deadvid===0,   onClick: () => filterFromStats({ rate: r, flag:"deadvid" }) }));
-    tr.appendChild(makeCell("td", row.brokenimg, { zero: row.brokenimg===0, onClick: () => filterFromStats({ rate: r, flag:"brokenimg" }) }));
-    tr.appendChild(makeCell("td", row.noimage,   { zero: row.noimage===0,   onClick: () => filterFromStats({ rate: r, flag:"noimage" }) }));
-    tr.appendChild(makeCell("td", row.similar,   { zero: row.similar===0,   onClick: () => filterFromStats({ rate: r, flag:"similar" }) }));
-    tr.appendChild(makeCell("td", row.duplicate, { zero: row.duplicate===0, onClick: () => filterFromStats({ rate: r, flag:"duplicate" }) }));
+    tr.appendChild(makeCell("td", row.dead,      { zero: row.dead===0,      onClick: statsGo({ rate: r, flag:"dead" }) }));
+    tr.appendChild(makeCell("td", row.deadvid,   { zero: row.deadvid===0,   onClick: statsGo({ rate: r, flag:"deadvid" }) }));
+    tr.appendChild(makeCell("td", row.brokenimg, { zero: row.brokenimg===0, onClick: statsGo({ rate: r, flag:"brokenimg" }) }));
+    tr.appendChild(makeCell("td", row.noimage,   { zero: row.noimage===0,   onClick: statsGo({ rate: r, flag:"noimage" }) }));
+    tr.appendChild(makeCell("td", row.similar,   { zero: row.similar===0,   onClick: statsGo({ rate: r, flag:"similar" }) }));
+    tr.appendChild(makeCell("td", row.duplicate, { zero: row.duplicate===0, onClick: statsGo({ rate: r, flag:"duplicate" }) }));
     tbody.appendChild(tr);
   });
 
@@ -2289,30 +2667,42 @@ function renderStatsTable(){
   totalTr.className = "stats-total-row";
   totalTr.appendChild(makeCell("td", "Total", {
     cls:"stats-row-label",
-    onClick: () => filterFromStats({})
+    onClick: statsGo({})
   }));
   typeCols.forEach(t=>{
     totalTr.appendChild(makeCell("td", colTotals.types[t], {
-      onClick: () => filterFromStats({ type: t })
+      onClick: statsGo({ type: t })
     }));
   });
   totalTr.appendChild(makeCell("td", colTotals.total, {
     cls:"stats-total-col",
-    onClick: () => filterFromStats({})
+    onClick: statsGo({})
   }));
   totalTr.appendChild(makeCell("td", "", { cls:"stats-gap" }));
-  totalTr.appendChild(makeCell("td", colTotals.dead,      { onClick: () => filterFromStats({ flag:"dead" }) }));
-  totalTr.appendChild(makeCell("td", colTotals.deadvid,   { onClick: () => filterFromStats({ flag:"deadvid" }) }));
-  totalTr.appendChild(makeCell("td", colTotals.brokenimg, { onClick: () => filterFromStats({ flag:"brokenimg" }) }));
-  totalTr.appendChild(makeCell("td", colTotals.noimage,   { onClick: () => filterFromStats({ flag:"noimage" }) }));
-  totalTr.appendChild(makeCell("td", colTotals.similar,   { onClick: () => filterFromStats({ flag:"similar" }) }));
-  totalTr.appendChild(makeCell("td", colTotals.duplicate, { onClick: () => filterFromStats({ flag:"duplicate" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.dead,      { onClick: statsGo({ flag:"dead" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.deadvid,   { onClick: statsGo({ flag:"deadvid" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.brokenimg, { onClick: statsGo({ flag:"brokenimg" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.noimage,   { onClick: statsGo({ flag:"noimage" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.similar,   { onClick: statsGo({ flag:"similar" }) }));
+  totalTr.appendChild(makeCell("td", colTotals.duplicate, { onClick: statsGo({ flag:"duplicate" }) }));
   tbody.appendChild(totalTr);
 
   table.appendChild(tbody);
+  statsRefreshSel();
 }
 
+document.getElementById("statsMultiChk").addEventListener("change", ()=>{
+  statsSel.clear();
+  statsRefreshSel();
+});
+document.getElementById("statsApplyBtn").addEventListener("click", ()=>{
+  if(!statsSel.size) return;
+  filterFromStatsMulti([...statsSel.values()]);
+});
+
 document.getElementById("statsBtn").onclick = () => {
+  statsSel.clear();
+  document.getElementById("statsMultiChk").checked = false;
   renderStatsTable();
   document.getElementById("statsOverlay").classList.add("show");
 };
