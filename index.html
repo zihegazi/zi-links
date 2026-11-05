@@ -562,17 +562,6 @@ main {
   cursor:pointer;
 }
 
-#filterOverlay .dropdown-content {
-  display:block;
-  position:static;
-  background:transparent;
-  border:none;
-  padding:0;
-  max-height:none;
-  overflow:visible;
-  min-width:0;
-}
-
 .modal-star {
   cursor:pointer;
   color:#444;
@@ -601,105 +590,28 @@ main {
   margin-left:auto;
 }
 
-.modal-columns {
-  display:flex;
-  align-items:flex-start;
-  gap:0;
+/* Filter & Sort: sections of chips (same on desktop and mobile) */
+#filterOverlay .modal-box{ width:min(560px,94vw); max-height:86vh; display:flex; flex-direction:column; overflow:hidden; padding:14px 16px; }
+#filterOverlay .modal-box h3{ margin-bottom:10px; }
+.f-body{ flex:1; min-height:0; overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none; display:flex; flex-direction:column; gap:14px; padding-bottom:4px; }
+.f-body::-webkit-scrollbar{ display:none; width:0; height:0; }
+.f-sec:has(.chips:empty){ display:none; }
+.f-head{ font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
+#filterOverlay .chips{ position:static; display:flex; flex-wrap:wrap; gap:6px; background:transparent; border:none; padding:0; min-width:0; max-height:none; overflow:visible; }
+#filterOverlay .chips label{ display:inline-flex; align-items:center; gap:6px; padding:5px 11px; min-height:30px; border:1px solid #333; border-radius:999px; background:var(--btn); color:var(--text); font-size:12.5px; cursor:pointer; white-space:nowrap; user-select:none; transition:background .12s, border-color .12s; }
+#filterOverlay .chips label:hover{ background:var(--btn-hover); }
+#filterOverlay .chips label:has(input:checked){ border-color:#9dff9d; color:#d8ffd8; background:rgba(157,255,157,.09); }
+#filterOverlay .chips input{ position:absolute; opacity:0; width:0; height:0; margin:0; pointer-events:none; }
+#filterOverlay .chips .filter-opt-name{ display:inline-flex; align-items:center; gap:5px; }
+#filterOverlay .chips .filter-opt-count{ color:var(--muted); font-size:11px; }
+#filterOverlay .chips label:has(input:checked) .filter-opt-count{ color:#9fd89f; }
+#filterOverlay #starCheckboxes label .filter-opt-name{ color:var(--c-star); }
+#filterOverlay .f-body + .modal-actions{ margin-top:12px; padding-top:10px; border-top:1px solid #222; }
+@media (max-width:700px){
+  #filterOverlay{ padding:0; align-items:flex-end; }
+  #filterOverlay .modal-box{ width:100%; max-height:88vh; border-radius:16px 16px 0 0; border-width:1px 0 0; padding:14px 14px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  #filterOverlay .chips label{ min-height:36px; padding:6px 13px; font-size:13px; }
 }
-
-.modal-columns .modal-field {
-  flex:0 0 auto;
-  padding:0 18px;
-}
-
-.modal-columns .modal-field:first-child {
-  padding-left:0;
-}
-
-.modal-columns .modal-field:last-child {
-  padding-right:0;
-}
-
-.modal-columns .modal-field + .modal-field {
-  border-left:1px solid #2a2a2a;
-}
-
-.modal-columns .modal-field label {
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:.05em;
-  font-weight:600;
-  color:var(--muted);
-  display:block;
-  padding-bottom:6px;
-  margin-bottom:6px;
-  border-bottom:1px solid #2a2a2a;
-}
-
-.modal-columns .dropdown-content label,
-.modal-columns .popup-radio-list label {
-  padding:4px 6px;
-  margin:0 -6px;
-  border-radius:6px;
-  white-space:nowrap;
-}
-
-.modal-columns .dropdown-content label:hover,
-.modal-columns .popup-radio-list label:hover {
-  background:rgba(255,255,255,0.06);
-}
-
-/* أسامي العناصر تتحاذى شمال والأرقام كلها تتحاذى يمين، مع مسافة ثابتة بينهم */
-#filterOverlay .dropdown-content label {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-}
-
-#filterOverlay .dropdown-content label .filter-opt-name {
-  display:flex;
-  align-items:center;
-  gap:6px;
-  white-space:nowrap;
-}
-
-#filterOverlay .dropdown-content label .filter-opt-count {
-  margin-left:auto;
-  color:var(--muted);
-  white-space:nowrap;
-}
-
-#filterOverlay .modal-box {
-  width:fit-content;
-  min-width:260px;
-  max-width:94vw;
-}
-
-#filterOverlay .modal-columns {
-  flex-wrap: wrap;
-}
-
-/* أعمدة الفلتر: الأعمدة الصغيرة تحت بعض (Order تحت Sort by، Flags تحت Rate)، وعمود Type هو الأطول بحد أقصى */
-.modal-col{ flex:0 0 auto; padding:0 18px; display:flex; flex-direction:column; gap:16px; }
-.modal-col:first-child{ padding-left:0; }
-.modal-col:last-child{ padding-right:0; }
-.modal-col + .modal-col{ border-left:1px solid #2a2a2a; }
-.modal-columns .modal-col .modal-field{ padding:0; border-left:none; }
-/* مفيش سكرول بار في بوباب الفلتر: عمود Type هو المرجع، وباقي القوائم (Rate/Flags/Tags/Featured)
-   بتتقسم لأعمدة صغيرة جنب بعض، وكل عمود فيه أقصى عدد عناصر = عدد عناصر Type (--filter-rows بتتحدد من الجافاسكريبت) */
-#filterOverlay #typeCheckboxes{ max-height:none; overflow:visible; }
-#filterOverlay #rateCheckboxes, #filterOverlay #flagsCheckboxes,
-#filterOverlay #tagCheckboxes, #filterOverlay #starCheckboxes{
-  display:grid;
-  grid-auto-flow:column;
-  grid-template-rows:repeat(var(--filter-rows, 20), auto);
-  column-gap:22px;
-  max-height:none; overflow:visible;
-}
-#filterOverlay .modal-box{ scrollbar-width:none; -ms-overflow-style:none; }
-#filterOverlay .modal-box::-webkit-scrollbar{ display:none; width:0; height:0; }
-#filterOverlay #starCheckboxes label .filter-opt-name{ color:var(--c-star); font-weight:600; }
 .filter-empty{ font-size:12px; color:var(--muted); padding:4px 0; }
 
 #statsOverlay .modal-box {
@@ -1132,11 +1044,10 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
 <div id="filterOverlay" class="modal-overlay">
   <div class="modal-box">
     <h3>Filter &amp; Sort</h3>
-    <div class="modal-columns">
-      <div class="modal-col">
-      <div class="modal-field">
-        <label>Sort by</label>
-        <div class="popup-radio-list">
+    <div class="f-body">
+      <section class="f-sec">
+        <div class="f-head">Sort by</div>
+        <div class="chips">
           <label><input type="radio" name="sortFieldRadio" value="none"> None</label>
           <label><input type="radio" name="sortFieldRadio" value="title"> Title</label>
           <label><input type="radio" name="sortFieldRadio" value="link"> Link</label>
@@ -1144,50 +1055,29 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
           <label><input type="radio" name="sortFieldRadio" value="type"> Type</label>
           <label><input type="radio" name="sortFieldRadio" value="random"> Random</label>
         </div>
-      </div>
-      <div class="modal-field">
-        <label>Order</label>
-        <div class="popup-radio-list">
-          <label><input type="radio" name="sortOrderRadio" value="asc"> Ascend</label>
-          <label><input type="radio" name="sortOrderRadio" value="desc"> Descend</label>
+      </section>
+      <section class="f-sec">
+        <div class="f-head">Order</div>
+        <div class="chips">
+          <label><input type="radio" name="sortOrderRadio" value="asc"> ↑ Ascend</label>
+          <label><input type="radio" name="sortOrderRadio" value="desc"> ↓ Descend</label>
         </div>
-      </div>
-      </div>
-      <div class="modal-col">
-      <div class="modal-field">
-        <label>Rate</label>
-        <div class="dropdown-content" id="rateCheckboxes"></div>
-      </div>
-      <div class="modal-field">
-        <label>Flags</label>
-        <div class="dropdown-content" id="flagsCheckboxes">
+      </section>
+      <section class="f-sec"><div class="f-head">Rate</div><div class="chips" id="rateCheckboxes"></div></section>
+      <section class="f-sec"><div class="f-head">Type</div><div class="chips" id="typeCheckboxes"></div></section>
+      <section class="f-sec"><div class="f-head">Tags</div><div class="chips" id="tagCheckboxes"></div></section>
+      <section class="f-sec"><div class="f-head">★ Featured</div><div class="chips" id="starCheckboxes"></div></section>
+      <section class="f-sec">
+        <div class="f-head">Flags</div>
+        <div class="chips" id="flagsCheckboxes">
           <label><span class="filter-opt-name"><input type="checkbox" value="duplicate"> ⚠️ Duplicate</span><span class="filter-opt-count flag-count" data-flag="duplicate"></span></label>
-          <label><span class="filter-opt-name"><input type="checkbox" value="similar"> ߔΠSimilar</span><span class="filter-opt-count flag-count" data-flag="similar"></span></label>
-          <label><span class="filter-opt-name"><input type="checkbox" value="dead"> ߒ Dead Link</span><span class="filter-opt-count flag-count" data-flag="dead"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="similar"> 👯 Similar</span><span class="filter-opt-count flag-count" data-flag="similar"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="dead"> 💀 Dead Link</span><span class="filter-opt-count flag-count" data-flag="dead"></span></label>
           <label><span class="filter-opt-name"><input type="checkbox" value="deadvid"> 🎥 Dead Video</span><span class="filter-opt-count flag-count" data-flag="deadvid"></span></label>
           <label><span class="filter-opt-name"><input type="checkbox" value="brokenimg"> 🖼️ Broken Image</span><span class="filter-opt-count flag-count" data-flag="brokenimg"></span></label>
           <label><span class="filter-opt-name"><input type="checkbox" value="noimage"> 🖼️ No Image</span><span class="filter-opt-count flag-count" data-flag="noimage"></span></label>
         </div>
-      </div>
-      </div>
-      <div class="modal-col">
-      <div class="modal-field">
-        <label>Type</label>
-        <div class="dropdown-content" id="typeCheckboxes"></div>
-      </div>
-      </div>
-      <div class="modal-col">
-      <div class="modal-field">
-        <label>Tags</label>
-        <div class="dropdown-content" id="tagCheckboxes"></div>
-      </div>
-      </div>
-      <div class="modal-col">
-      <div class="modal-field">
-        <label>★ Featured</label>
-        <div class="dropdown-content" id="starCheckboxes"></div>
-      </div>
-      </div>
+      </section>
     </div>
     <div class="modal-actions">
       <div class="modal-actions-right">
@@ -1636,7 +1526,6 @@ function populateFilters(){
   });
 
   // أقصى عدد عناصر في أي عمود = عدد عناصر عمود Type (الباقي بيتقسم لأعمدة جنب بعض)
-  document.getElementById("filterOverlay").style.setProperty("--filter-rows", Math.max(types.length, 1));
 
   // أكتر 10 هاشتاجات/تاجات (المستخرجة من العنوان) تكرارًا، بنفس شكل باقي الأعمدة
   const tagCounts = new Map();
@@ -1650,16 +1539,15 @@ function populateFilters(){
       m.get(key).count++;
     });
   });
-  const topTags = [...tagCounts.values()].sort((a,b)=>b.count-a.count).slice(0, Math.max(types.length,1));
+  const topTags = [...tagCounts.values()].sort((a,b)=>b.count-a.count).slice(0, 30);
   const starC = document.getElementById("starCheckboxes");
   starC.innerHTML = "";
-  const stars = [...starCounts.values()].sort((a,b)=>b.count-a.count || a.label.localeCompare(b.label)).slice(0, Math.max(types.length,1));
+  const stars = [...starCounts.values()].sort((a,b)=>b.count-a.count || a.label.localeCompare(b.label)).slice(0, 30);
   stars.forEach(({label,count})=>{
     let l=document.createElement("label");
     l.innerHTML=`<span class="filter-opt-name"><input type="checkbox" value="${label}"${checkedTags.has(label.toLowerCase())?" checked":""}> ${label}</span><span class="filter-opt-count">(${count})</span>`;
     starC.appendChild(l);
   });
-  if(!stars.length) starC.innerHTML = '<div class="filter-empty">—</div>';
   const tagC = document.getElementById("tagCheckboxes");
   tagC.innerHTML = "";
   topTags.forEach(({label,count})=>{
