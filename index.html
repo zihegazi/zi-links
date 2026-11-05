@@ -872,8 +872,11 @@ main {
   .grid{ gap:8px; }
   .title{ font-size:13px; }
   input, textarea, select{ font-size:16px; }
-  #editOverlay, #settingsOverlay{ padding:0; align-items:stretch; }
-  #editOverlay .modal-box, #settingsOverlay .modal-box{ width:100%; max-height:none; height:100%; border-radius:0; border:none; padding:14px; }
+  #editOverlay{ padding:0; align-items:stretch; }
+  #editOverlay .modal-box{ width:100%; max-height:none; height:100%; border-radius:0; border:none; padding:14px; }
+  #settingsOverlay{ padding:0; align-items:flex-end; }
+  #settingsOverlay .modal-box{ width:100%; max-height:92vh; border-radius:16px 16px 0 0; border-width:1px 0 0; padding:12px 14px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .set-bm{ display:none; }
   .modal-box.wide{ width:100%; }
   .pp-grid{ grid-template-columns:repeat(3,1fr); }
 }
@@ -969,39 +972,79 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
 
 /* موبايل: الأزرار الأساسية في شريط تحت قريب من الإبهام */
 @media (max-width:700px){
+  .controls{ display:contents; }
+  .controls #searchBtn{ display:inline-flex !important; }
+  #search{
+    display:none; position:fixed; left:8px; right:8px; bottom:calc(58px + env(safe-area-inset-bottom, 0px)); z-index:1600;
+    width:auto; padding:10px 14px; background:rgba(14,14,14,.97); border:1px solid #2f2f2f; border-radius:14px;
+    box-shadow:0 6px 24px rgba(0,0,0,.6);
+  }
+  body.search-open #search{ display:block; }
+  #count{ padding:0; min-width:30px; text-align:center; font-size:12px; }
+  .controls #settingsBtn{ position:relative; width:36px; height:36px; padding:0 !important; border:none !important; border-radius:50%; flex:0 0 auto; }
+  .controls #settingsBtn svg{ height:20px; }
   .quickbar{
-    display:flex; justify-content:space-around; align-items:center;
+    display:flex; justify-content:space-around; align-items:center; gap:2px; overflow-x:auto; scrollbar-width:none;
+
     position:fixed; left:0; right:0; bottom:0; z-index:1500;
     padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
     background:rgba(10,10,10,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
     border-top:1px solid #222;
   }
-  .controls .ibtn.has-lbl{ width:40px; height:40px; padding:0 !important; border-radius:50% !important; }
+  .quickbar::-webkit-scrollbar{ display:none; }
+  .controls .ibtn.has-lbl{ width:36px; height:36px; padding:0 !important; border-radius:50% !important; }
   .controls .ibtn.has-lbl .lbl{ display:none; }
-  .controls .ibtn{ width:40px; height:40px; }
-  .controls .ibtn svg{ width:22px; height:22px; }
+  .controls .ibtn{ width:36px; height:36px; flex:0 0 auto; }
+  .controls .ibtn svg{ width:21px; height:21px; }
   main{ padding-bottom:calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 
+
+/* Settings: compact */
+#settingsOverlay .modal-box{ padding:12px 14px; }
+#settingsOverlay .modal-box h3{ margin-bottom:10px; }
+#settingsOverlay .modal-field{ margin-bottom:8px; gap:2px; }
+#settingsOverlay .modal-field label{ font-size:11px; }
+#settingsOverlay .modal-actions{ margin-top:10px; }
+#settingsOverlay .modal-msg{ min-height:0; margin-top:6px; }
+#settingsOverlay .modal-msg:empty, .set-hint:empty{ display:none; }
+.set-line{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 8px; cursor:default; }
+.set-line > span{ color:var(--muted); font-size:12px; white-space:nowrap; }
+.set-line input[type=password]{ flex:0 1 150px; min-width:0; padding:5px 8px; border-radius:8px; border:1px solid #333; background:var(--btn); color:var(--text); font-size:13px; font-family:inherit; }
+.set-line input[type=checkbox]{ width:17px; height:17px; margin:0; accent-color:#2a6f3f; cursor:pointer; }
+.seg{ display:flex; gap:3px; }
+.seg button{ width:26px; padding:5px 0; border-radius:8px; border:1px solid #333; background:var(--btn); color:var(--muted); font-size:12px; cursor:pointer; }
+.seg button:hover{ background:var(--btn-hover); }
+.seg button.on{ color:#d8ffd8; border-color:#9dff9d; }
+.set-tools{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; padding-top:8px; border-top:1px solid #222; }
+.set-btn{ display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:10px; border:1px solid #333; background:var(--btn); color:var(--text); font-size:12.5px; font-family:inherit; cursor:pointer; }
+.set-btn:hover{ background:var(--btn-hover); }
+.set-btn:disabled{ opacity:.6; cursor:default; }
+.set-btn input{ display:none; }
+.set-bm{ padding:4px 10px; font-size:12.5px; }
+#installBtn[hidden]{ display:none !important; }
+
+/* search + count live in the bottom bar on mobile */
+#count{ order:2; color:var(--muted); font-size:13px; padding-left:6px; }
+#searchBtn{ display:none !important; }
+#searchBtn.on{ color:var(--accent2); }
 </style>
 </head>
 <body>
 
 <div class="controls">
-<button id="settingsBtn" title="Settings"><svg viewBox="3.2 0.4 24.6 21.3" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.622 2.184-3.589.26-7.989.779q-.137 0-.136.195l2.776 8.314c.068.13.271-.13 2.234-2.079l1.693-1.754-.136.39-2.302 4.223-2.844 5.196-1.151 2.145-.406.845h.204c.136.065 12.188-.13 13-.195h.406v-.455a110 110 0 0 0-1.489-7.86l-1.219 1.039-1.829 1.494 2.031-5.196c3.114-7.99 2.844-7.341 2.708-7.405q-.34-.131-1.964.065m10.225-.909L21.85 2.38l-3.318.909c-.406.13-.406.13-.204 1.169l1.693 10.264c.136.13 2.776.649 2.979.649l.204-.325c.542-1.885 3.792-13.512 3.995-13.967q.134-.261-1.354.13m-5.416 15.2q-1.49.26-2.234 1.364c-.204.39-.204.455-.204 1.039 0 .455 0 .585.204.909.136.325.745.909 1.151 1.104 1.354.649 3.047.39 4.063-.585q.947-1.105.475-2.274c-.204-.39-.813-1.039-1.287-1.234a4.07 4.07 0 0 0-2.167-.325"/></svg></button>
 <div class="quickbar">
+<button id="settingsBtn" title="Settings"><svg viewBox="3.2 0.4 24.6 21.3" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.622 2.184-3.589.26-7.989.779q-.137 0-.136.195l2.776 8.314c.068.13.271-.13 2.234-2.079l1.693-1.754-.136.39-2.302 4.223-2.844 5.196-1.151 2.145-.406.845h.204c.136.065 12.188-.13 13-.195h.406v-.455a110 110 0 0 0-1.489-7.86l-1.219 1.039-1.829 1.494 2.031-5.196c3.114-7.99 2.844-7.341 2.708-7.405q-.34-.131-1.964.065m10.225-.909L21.85 2.38l-3.318.909c-.406.13-.406.13-.204 1.169l1.693 10.264c.136.13 2.776.649 2.979.649l.204-.325c.542-1.885 3.792-13.512 3.995-13.967q.134-.261-1.354.13m-5.416 15.2q-1.49.26-2.234 1.364c-.204.39-.204.455-.204 1.039 0 .455 0 .585.204.909.136.325.745.909 1.151 1.104 1.354.649 3.047.39 4.063-.585q.947-1.105.475-2.274c-.204-.39-.813-1.039-1.287-1.234a4.07 4.07 0 0 0-2.167-.325"/></svg></button>
 <button id="homeButton" class="ibtn" title="Scroll to top" aria-label="Top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <button id="reloadBtn" class="ibtn" title="Reload data from the sheet without refreshing the page" aria-label="Reload"><span class="rl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></span></button>
 <button id="addCardBtn" class="ibtn" title="Add a new card to the sheet" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button id="searchBtn" class="ibtn" title="Search" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></button>
 <button id="filterBtn" class="ibtn has-lbl" title="Filter &amp; sort" aria-label="Filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg><span class="lbl">Filter</span></button>
 <button id="statsBtn" class="ibtn has-lbl" title="Stats" aria-label="Stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span class="lbl">Stats</span></button>
+<button id="installBtn" class="ibtn has-lbl" title="Install Zi_LINK on this device" aria-label="Install" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span class="lbl">Install</span></button>
+<button id="resetAllBtn" class="ibtn" title="Clears the sort, filter, and search, and goes back to the default view" aria-label="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+<span id="count">0</span>
 </div>
-
-  <label>View</label>
-  <select id="colsSelect">
-    <option>1</option><option selected>2</option><option>3</option>
-    <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-  </select>
 
   <select id="sortSelect" style="display:none">
     <option value="none">None</option>
@@ -1016,15 +1059,7 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
     <option value="desc">Descend</option>
   </select>
 
-    <label class="file-btn">
-    Load File
-    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json"/>
-  </label>
-  <button id="resetAllBtn" class="ibtn" title="Clears the sort, filter, and search, and goes back to the default view" aria-label="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
-
-  <input id="search" type="search" placeholder="Search: cat dog | puppy -tiktok "cute cat""/>
-  <span id="count" style="color:var(--muted); font-size:13px; padding-left:6px;">0</span>
-
+  <input id="search" type="search" placeholder="Search: cat dog | puppy -tiktok &quot;cute cat&quot;"/>
 
 </div>
 
@@ -1155,7 +1190,6 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
       </div>
     </div>
     <div class="modal-actions">
-      <button id="checkAllBtn" title="Checks every link, image and video and flags the ones that are dead or broken">🔗 Check Links &amp; Media</button>
       <div class="modal-actions-right">
         <button id="filterCancelBtn">Cancel</button>
         <button id="filterOkBtn" class="save-btn">OK</button>
@@ -1184,39 +1218,30 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
   <div class="modal-box">
     <h3>Settings</h3>
     <div class="modal-field">
-      <label>Google Sheet link</label>
+      <label>Sheet link</label>
       <input id="setSheetUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/…/edit#gid=…" autocomplete="off"/>
       <div id="setSheetParsed" class="set-hint" dir="rtl"></div>
-      <div class="set-hint" dir="rtl">الشيت لازم يكون Share → Anyone with the link → Viewer عشان القراءة تشتغل.</div>
     </div>
     <div class="modal-field">
-      <label>Add/Edit endpoint (Apps Script Web App link)</label>
+      <label>Script link (add / edit)</label>
       <input id="setEndpoint" type="text" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"/>
-      <div class="set-hint" dir="rtl">نفس لينك الإضافة (EDIT_ENDPOINT). سيبه فاضي لو عايز عرض بس.</div>
     </div>
-    <div class="modal-field">
-      <label>Edit password (optional)</label>
-      <input id="setPassword" type="password" placeholder="(none)" autocomplete="off"/>
+    <div class="set-line"><span>Password</span><input id="setPassword" type="password" placeholder="optional" autocomplete="off"/></div>
+    <div class="set-line"><span>Columns</span><div class="seg" id="colsSeg"></div></div>
+    <select id="colsSelect" hidden>
+      <option>1</option><option selected>2</option><option>3</option>
+      <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+    </select>
+    <label class="set-line"><span>Auto-fill image &amp; video</span><input type="checkbox" id="setAutoFill"/></label>
+    <div class="set-tools">
+      <label class="set-btn" title="Show a CSV / XLSX / JSON file instead of the sheet">📂 Load file<input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json"/></label>
+      <button type="button" id="checkAllBtn" class="set-btn" title="Flags dead links, videos and broken images">🔗 Check links</button>
+      <a id="bmLink" href="#" draggable="true" class="bm-link set-bm" title="Drag to the bookmarks bar, then click it on any page">➕ Zi_LINK Add</a>
     </div>
-    <label class="set-check"><input type="checkbox" id="setAutoFill"/> Auto-fill image &amp; video from YouTube / TikTok / Vimeo links</label>
-    <div class="modal-field">
-      <label>Add from any page (Chrome desktop)</label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <a id="bmLink" href="#" draggable="true" class="bm-link">➕ Zi_LINK Add</a>
-      </div>
-      <div class="set-hint" dir="rtl">اسحب الزرار ده لشريط الـ Bookmarks مرة واحدة. بعدها في أي صفحة دوس عليه: بيفتح فورم الإضافة بعنوان ولينك الصفحة وصورها وفيديوهاتها ونصوصها تختار منها، زي الإضافة. (مواقع قليلة بتمنع الـ bookmarklets، زي GitHub، ومش هتشتغل فيها.)</div>
-    </div>
-    <div class="modal-field">
-      <label>Install on this device</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" id="installBtn" disabled>Install app</button>
-        <button type="button" id="installCheckBtn">Check</button>
-      </div>
-      <pre id="installReport" class="set-hint" style="white-space:pre-wrap;margin:4px 0 0;font-family:inherit"></pre>
-    </div>
+    <div id="checkReport" class="set-hint"></div>
     <div class="modal-msg" id="setMsg"></div>
     <div class="modal-actions">
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px">
         <button id="setTestBtn" type="button">Test</button>
         <button id="setResetBtn" type="button" class="clear-btn">Reset</button>
       </div>
@@ -1292,9 +1317,21 @@ function updateGridCols(cols){
   const colWidth = screenWidth / cols;
   gridEl.style.gridTemplateColumns = `repeat(${cols}, minmax(0, ${colWidth}px))`;
 }
-colsSelectEl.onchange = () => updateGridCols(colsSelectEl.value);
+const COLS_KEY = "ziLinkCols";
+try{ const sc = localStorage.getItem(COLS_KEY); if(sc && [...colsSelectEl.options].some(o=>o.text===sc)) colsSelectEl.value = sc; }catch{}
+const colsSegEl = document.getElementById("colsSeg");
+[...colsSelectEl.options].forEach(o=>{
+  const b = document.createElement("button"); b.type = "button"; b.textContent = o.text;
+  b.onclick = () => { colsSelectEl.value = o.text; colsSelectEl.onchange(); };
+  colsSegEl.appendChild(b);
+});
+function syncColsSeg(){ [...colsSegEl.children].forEach(b=>b.classList.toggle("on", b.textContent === colsSelectEl.value)); }
+colsSelectEl.onchange = () => {
+  updateGridCols(colsSelectEl.value); syncColsSeg();
+  try{ localStorage.setItem(COLS_KEY, colsSelectEl.value); }catch{}
+};
 window.onresize = () => updateGridCols(colsSelectEl.value);
-updateGridCols(colsSelectEl.value);
+updateGridCols(colsSelectEl.value); syncColsSeg();
 
 function toEmbedUrl(url){
   if(!url) return "";
@@ -1948,6 +1985,7 @@ function renderPartial(list){
   render(list.slice(0, end));
   const countEl = document.getElementById("count");
   if(countEl) countEl.textContent = list.length;
+  syncSearchBtn();
 }
 
 // بيفعّل checkbox معين في دروب داون Flags (تستخدم من الدوسة على البابلز نفسها)
@@ -2445,6 +2483,13 @@ document.getElementById("editSaveBtn").onclick = async () => {
 };
 
 searchEl.oninput = applyFilters;
+// mobile: search icon opens a small bar above the bottom bar
+function syncSearchBtn(){ document.getElementById("searchBtn").classList.toggle("on", !!searchEl.value.trim()); }
+document.getElementById("searchBtn").onclick = () => {
+  const open = document.body.classList.toggle("search-open");
+  if(open) searchEl.focus(); else searchEl.blur();
+};
+searchEl.addEventListener("keydown", e => { if(e.key === "Enter") searchEl.blur(); });
 
 // ====== بوبوب الـ Filter & Sort (Sort + Rate + Type + Flags + Tags) ======
 let filterSnapshotRate = [];
@@ -2487,6 +2532,7 @@ document.getElementById("filterOverlay").addEventListener("click", e=>{
 
 // ====== زرار "Reset" الكبير — بيمسح الترتيب والفلتر والبحث ويرجع الفايل لحالته الأساسية ======
 document.getElementById("resetAllBtn").onclick = () => {
+  document.body.classList.remove("search-open");
   searchEl.value = "";
   sortSelectEl.value = "none";
   orderSelectEl.value = "asc";
@@ -2716,6 +2762,7 @@ document.getElementById("statsOverlay").addEventListener("click", e=>{
 document.getElementById("fileInput").addEventListener("change", async function(e){
   const file = e.target.files[0];
   if(!file) return;
+  document.getElementById("settingsOverlay").classList.remove("show");
   try{
     setStatus("Loading file…");
     const name = file.name.toLowerCase();
@@ -2924,6 +2971,8 @@ async function checkOneVideo(url){
 // ====== زرار واحد بيراجع اللينكات، لينكات الصور، ولينكات الفيديو مع بعض ======
 async function checkAllHealth(force=false){
   const btn = document.getElementById("checkAllBtn");
+  const checkRep = document.getElementById("checkReport");
+  checkRep.textContent = "";
   btn.disabled = true;
   const setBtnText = t => btn.textContent = t;
 
@@ -2944,17 +2993,14 @@ async function checkAllHealth(force=false){
   });
 
   btn.disabled = false;
-  btn.textContent = "🔗 Check Links & Media";
+  btn.textContent = "🔗 Check links";
 
   const totalChecked = linkResult.checked + vidResult.checked + imgResult.checked;
-  if(!totalChecked){
-    setStatus("Everything was checked recently — nothing new to check.", true);
-  } else {
-    setStatus(
-      `Checked ${totalChecked} item(s). Dead links: ${linkResult.deadCount} · Dead videos: ${vidResult.deadCount} · Broken images: ${imgResult.deadCount}`,
-      true
-    );
-  }
+  const checkMsg = totalChecked
+    ? `Checked ${totalChecked} item(s). Dead links: ${linkResult.deadCount} · Dead videos: ${vidResult.deadCount} · Broken images: ${imgResult.deadCount}`
+    : "Everything was checked recently — nothing new to check.";
+  checkRep.textContent = checkMsg;
+  setStatus(checkMsg, true);
   setTimeout(()=>setStatus("",false), 5000);
 
   applyFilters(); // إعادة رسم الشبكة عشان العلامات الجديدة تظهر
@@ -3251,68 +3297,21 @@ function bookmarkletCode(){
 })();
 
 
-// ====== Install helper ======
+// ====== Install button (appears only while the app isn't installed) ======
 let deferredInstall = null;
+const installBtnEl = document.getElementById("installBtn");
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault(); deferredInstall = e;
-  document.getElementById("installBtn").disabled = false;
+  if(!isStandalone()) installBtnEl.hidden = false;
 });
-window.addEventListener("appinstalled", () => {
-  deferredInstall = null;
-  document.getElementById("installBtn").disabled = true;
-  document.getElementById("installReport").textContent = "Installed ✅";
-});
-document.getElementById("installBtn").onclick = async () => {
+window.addEventListener("appinstalled", () => { deferredInstall = null; installBtnEl.hidden = true; });
+installBtnEl.onclick = async () => {
   if(!deferredInstall) return;
   deferredInstall.prompt();
-  const r = await deferredInstall.userChoice;
-  document.getElementById("installReport").textContent = "Result: " + r.outcome;
+  try{ await deferredInstall.userChoice; }catch{}
   deferredInstall = null;
-  document.getElementById("installBtn").disabled = true;
-};
-document.getElementById("installCheckBtn").onclick = async () => {
-  const rep = document.getElementById("installReport");
-  const out = [], ok = t => out.push("✓ " + t), bad = t => out.push("✗ " + t);
-  rep.textContent = "Checking…";
-  const ua = navigator.userAgent, cv = (ua.match(/Chrome\/(\d+)/) || [])[1], av = (ua.match(/Android ([\d.]+)/) || [])[1];
-  out.push("Browser: " + (cv ? "Chrome/Chromium " + cv : "not Chrome?") + (av ? " · Android " + av : " · not Android"));
-  location.protocol === "https:" ? ok("HTTPS") : bad("Not HTTPS (" + location.protocol + ")");
-  if(matchMedia("(display-mode: standalone)").matches) ok("Already running as an installed app");
-  try{
-    const link = document.querySelector('link[rel="manifest"]');
-    if(!link) throw new Error("no manifest link in the page");
-    const res = await fetch(link.href, { cache: "no-store" });
-    if(!res.ok) throw new Error("manifest returned HTTP " + res.status);
-    const m = await res.json();
-    ok("Manifest loaded (" + (m.name || "?") + ")");
-    out.push("  id=" + (m.id || "-") + " · start_url=" + m.start_url + " · scope=" + m.scope + " · share_target=" + (m.share_target ? "yes" : "no"));
-    const base = new URL(link.href);
-    for(const size of ["192x192", "512x512"]){
-      const ic = (m.icons || []).find(i => (i.sizes || "").split(" ").includes(size));
-      if(!ic){ bad("No " + size + " icon in the manifest"); continue; }
-      const r = await fetch(new URL(ic.src, base), { cache: "no-store" });
-      r.ok ? ok(size + " icon loads") : bad(size + " icon: HTTP " + r.status + " (" + ic.src + ")");
-    }
-  }catch(e){ bad("Manifest: " + (e.message || e)); }
-  try{
-    const sw = await fetch("sw.js", { cache: "no-store" });
-    sw.ok ? ok("sw.js is reachable") : bad("sw.js: HTTP " + sw.status);
-  }catch(e){ bad("sw.js: " + (e.message || e)); }
-  try{
-    const reg = await navigator.serviceWorker.getRegistration();
-    if(!reg) bad("Service worker is not registered");
-    else {
-      const st = reg.active || reg.waiting || reg.installing; ok("Service worker " + (st ? st.state : "?") + " (" + reg.scope + ")");
-      navigator.serviceWorker.controller ? ok("This page is controlled by the service worker") : bad("This page isn't controlled by the service worker yet — reload the page once");
-    }
-  }catch(e){ bad("Service worker: " + (e.message || e)); }
-  if(!deferredInstall){
-    rep.textContent = out.join("\n") + "\nWaiting a few seconds for Chrome…";
-    await new Promise(r => { const t = setTimeout(r, 6000); window.addEventListener("beforeinstallprompt", () => { clearTimeout(t); setTimeout(r, 50); }, { once: true }); });
-  }
-  if(deferredInstall) ok("Chrome is offering to install — press Install app");
-  else { bad("Chrome isn't offering install right now"); out.push("→ الصفحة سليمة، والقرار هنا لـ Chrome. جرب: reload للصفحة وانتظر 10 ثواني، وبعدها شوف قايمة ⋮ لو فيها «Install app» أو «Open …»، وافتح chrome://webapks."); }
-  rep.textContent = out.join("\n");
+  installBtnEl.hidden = true;
 };
 
 
