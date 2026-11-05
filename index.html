@@ -1028,6 +1028,48 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
 #count{ order:2; color:var(--muted); font-size:13px; padding-left:6px; }
 #searchBtn{ display:none !important; }
 #searchBtn.on{ color:var(--accent2); }
+
+/* ===== Mobile only: columns 1-2, and the filter popup as a bottom sheet of chips ===== */
+@media (max-width:700px){
+  #colsSeg button:nth-child(n+3){ display:none; }
+
+  #filterOverlay{ padding:0; align-items:flex-end; }
+  #filterOverlay .modal-box{ width:100%; min-width:0; max-width:none; max-height:88vh; border-radius:16px 16px 0 0; border-width:1px 0 0; padding:14px 14px 0; }
+  #filterOverlay .modal-columns{ flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:14px; }
+  #filterOverlay .modal-col{ display:contents; }
+  #filterOverlay .modal-columns .modal-field{ padding:0; margin:0; border:none; gap:0; }
+  #filterOverlay .modal-col .modal-field:has(#flagsCheckboxes){ order:1; }
+  #filterOverlay .modal-columns .modal-field:has(.dropdown-content:empty),
+  #filterOverlay .modal-columns .modal-field:has(.filter-empty){ display:none; }
+
+  #filterOverlay .modal-columns .modal-field > label{ padding:0; margin:0 0 7px; border:none; }
+
+  #filterOverlay .popup-radio-list,
+  #filterOverlay #rateCheckboxes, #filterOverlay #flagsCheckboxes, #filterOverlay #typeCheckboxes,
+  #filterOverlay #tagCheckboxes, #filterOverlay #starCheckboxes{
+    display:flex; flex-direction:row; flex-wrap:wrap; gap:6px; grid-template-rows:none; max-height:none; overflow:visible;
+  }
+  #filterOverlay .modal-columns .popup-radio-list label,
+  #filterOverlay .modal-columns .dropdown-content label{
+    position:relative; display:inline-flex; align-items:center; justify-content:flex-start; gap:6px;
+    margin:0; padding:6px 13px; min-height:36px; border:1px solid #333; border-radius:999px;
+    background:var(--btn); color:var(--text); font-size:13px; font-weight:400; letter-spacing:normal; text-transform:none;
+    white-space:nowrap; cursor:pointer; user-select:none;
+  }
+  #filterOverlay .modal-columns .popup-radio-list label:hover,
+  #filterOverlay .modal-columns .dropdown-content label:hover{ background:var(--btn-hover); }
+  #filterOverlay .modal-columns label:has(input:checked){ border-color:#9dff9d; color:#d8ffd8; background:rgba(157,255,157,.09); }
+  #filterOverlay .modal-columns label input{ position:absolute; opacity:0; width:0; height:0; margin:0; pointer-events:none; }
+  #filterOverlay .dropdown-content label .filter-opt-count{ margin-left:0; font-size:11px; }
+  #filterOverlay .modal-columns label:has(input:checked) .filter-opt-count{ color:#9fd89f; }
+  #filterOverlay .modal-columns label:has(input[value="asc"])::before{ content:"↑"; }
+  #filterOverlay .modal-columns label:has(input[value="desc"])::before{ content:"↓"; }
+
+  #filterOverlay .modal-actions{
+    position:sticky; bottom:0; z-index:5; margin:12px -14px 0; padding:10px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+    background:#111; border-top:1px solid #222;
+  }
+}
 </style>
 </head>
 <body>
@@ -1162,8 +1204,8 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
         <label>Flags</label>
         <div class="dropdown-content" id="flagsCheckboxes">
           <label><span class="filter-opt-name"><input type="checkbox" value="duplicate"> ⚠️ Duplicate</span><span class="filter-opt-count flag-count" data-flag="duplicate"></span></label>
-          <label><span class="filter-opt-name"><input type="checkbox" value="similar"> ߔΠSimilar</span><span class="filter-opt-count flag-count" data-flag="similar"></span></label>
-          <label><span class="filter-opt-name"><input type="checkbox" value="dead"> ߒ Dead Link</span><span class="filter-opt-count flag-count" data-flag="dead"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="similar"> 👯 Similar</span><span class="filter-opt-count flag-count" data-flag="similar"></span></label>
+          <label><span class="filter-opt-name"><input type="checkbox" value="dead"> 💀 Dead Link</span><span class="filter-opt-count flag-count" data-flag="dead"></span></label>
           <label><span class="filter-opt-name"><input type="checkbox" value="deadvid"> 🎥 Dead Video</span><span class="filter-opt-count flag-count" data-flag="deadvid"></span></label>
           <label><span class="filter-opt-name"><input type="checkbox" value="brokenimg"> 🖼️ Broken Image</span><span class="filter-opt-count flag-count" data-flag="brokenimg"></span></label>
           <label><span class="filter-opt-name"><input type="checkbox" value="noimage"> 🖼️ No Image</span><span class="filter-opt-count flag-count" data-flag="noimage"></span></label>
@@ -1312,6 +1354,9 @@ let loadingMore = false;
 
 function setStatus(msg, show=true){ statusEl.textContent=msg; statusEl.className="status"+(show?" show":""); }
 
+// on phones the grid is limited to 1 or 2 columns (more makes the cards too narrow)
+const mobileMQ = window.matchMedia("(max-width:700px)");
+const effCols = () => { const v = parseInt(colsSelectEl.value, 10) || 2; return mobileMQ.matches ? Math.min(v, 2) : v; };
 function updateGridCols(cols){
   const screenWidth = window.innerWidth;
   const colWidth = screenWidth / cols;
@@ -1325,13 +1370,13 @@ const colsSegEl = document.getElementById("colsSeg");
   b.onclick = () => { colsSelectEl.value = o.text; colsSelectEl.onchange(); };
   colsSegEl.appendChild(b);
 });
-function syncColsSeg(){ [...colsSegEl.children].forEach(b=>b.classList.toggle("on", b.textContent === colsSelectEl.value)); }
+function syncColsSeg(){ [...colsSegEl.children].forEach(b=>b.classList.toggle("on", b.textContent === String(effCols()))); }
 colsSelectEl.onchange = () => {
-  updateGridCols(colsSelectEl.value); syncColsSeg();
+  updateGridCols(effCols()); syncColsSeg();
   try{ localStorage.setItem(COLS_KEY, colsSelectEl.value); }catch{}
 };
-window.onresize = () => updateGridCols(colsSelectEl.value);
-updateGridCols(colsSelectEl.value); syncColsSeg();
+window.onresize = () => { updateGridCols(effCols()); syncColsSeg(); };
+updateGridCols(effCols()); syncColsSeg();
 
 function toEmbedUrl(url){
   if(!url) return "";
