@@ -1,5 +1,7 @@
 # Zi_LINK (PWA for Android)
 
+https://zihegazi.github.io/zi-links/
+
 Upload ALL of these files to the root of the GitHub repo (no subfolders):
 `index.html`, `add.html`, `sw.js`, `manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`
 
