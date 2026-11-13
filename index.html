@@ -105,10 +105,22 @@ main {
   padding:12px;
 }
 
-.grid {
-  display: grid;
-  gap: 12px;
-}
+/* طرق العرض (من الإعدادات): .m-grid شبكة عادية، .m-masonry مجازين، .m-list أسامي بس في أعمدة */
+.grid { --gap: 12px; }
+.grid.m-grid { display: grid; gap: var(--gap); }
+/* Masonry: الكروت absolute والـ JS (layoutMasonry) بيوزعها على الأعمدة، كل كارت في أقصر عمود */
+.grid.m-masonry { position: relative; }
+.grid.m-masonry > .card { position: absolute; top: 0; left: 0; }
+/* مساحة محجوزة للصورة لحد ما تتحمّل (بعدها بتاخد نسبتها الحقيقية) عشان التوزيع ما يتلخبطش */
+.grid.m-masonry img.thumb { aspect-ratio: auto 3 / 4; }
+/* List: زي عرض List في متصفح ملفات ويندوز، الأسامي بتنزل لتحت وبعدين العمود اللي بعده (عدد الأعمدة من Columns) */
+.grid.m-list { column-gap: calc(var(--gap) * 2); }
+.lrow { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 6px; break-inside: avoid; min-width: 0; animation: none; }
+.lrow:hover { background: rgba(255,255,255,.06); }
+.lrow .l-ico { flex-shrink: 0; font-size: 12px; opacity: .8; }
+.lrow .title { display: block; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lrow .edit-link { flex-shrink: 0; font-size: 12px; text-decoration: none; opacity: .4; }
+.lrow:hover .edit-link { opacity: 1; }
 
 .card {
   background: none;
@@ -869,7 +881,7 @@ main {
 .set-check{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text); margin:4px 0 8px; cursor:pointer; }
 @media (max-width:700px){
   main{ padding:8px; }
-  .grid{ gap:8px; }
+  .grid{ --gap:8px; }
   .title{ font-size:13px; }
   input, textarea, select{ font-size:16px; }
   #editOverlay{ padding:0; align-items:stretch; }
@@ -1016,6 +1028,7 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
 .seg button{ width:26px; padding:5px 0; border-radius:8px; border:1px solid #333; background:var(--btn); color:var(--muted); font-size:12px; cursor:pointer; }
 .seg button:hover{ background:var(--btn-hover); }
 .seg button.on{ color:#d8ffd8; border-color:#9dff9d; }
+.seg.wide button{ width:auto; padding:5px 10px; }
 .set-tools{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; padding-top:8px; border-top:1px solid #222; }
 .set-btn{ display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:10px; border:1px solid #333; background:var(--btn); color:var(--text); font-size:12.5px; font-family:inherit; cursor:pointer; }
 .set-btn:hover{ background:var(--btn-hover); }
@@ -1094,11 +1107,12 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
     <option value="link">Link</option>
     <option value="rate">Rate</option>
     <option value="type">Type</option>
+    <option value="added">Added</option>
     <option value="random">Random</option>
   </select>
   <select id="orderSelect" style="display:none">
     <option value="asc">Ascend</option>
-    <option value="desc">Descend</option>
+    <option value="desc" selected>Descend</option>
   </select>
 
   <input id="search" type="search" placeholder="Search: cat dog | puppy -tiktok &quot;cute cat&quot;"/>
@@ -1184,6 +1198,7 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
           <label><input type="radio" name="sortFieldRadio" value="link"> Link</label>
           <label><input type="radio" name="sortFieldRadio" value="rate"> Rate</label>
           <label><input type="radio" name="sortFieldRadio" value="type"> Type</label>
+          <label><input type="radio" name="sortFieldRadio" value="added"> Added</label>
           <label><input type="radio" name="sortFieldRadio" value="random"> Random</label>
         </div>
       </div>
@@ -1269,7 +1284,9 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
       <input id="setEndpoint" type="text" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"/>
     </div>
     <div class="set-line"><span>Password</span><input id="setPassword" type="password" placeholder="optional" autocomplete="off"/></div>
+    <div class="set-line"><span>View</span><div class="seg wide" id="viewSeg"></div></div>
     <div class="set-line"><span>Columns</span><div class="seg" id="colsSeg"></div></div>
+    <div class="set-line"><span>Order</span><div class="seg wide" id="orderSeg"></div></div>
     <select id="colsSelect" hidden>
       <option>1</option><option selected>2</option><option>3</option>
       <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
@@ -1278,9 +1295,12 @@ body:has(.modal-overlay.show) #settingsBtn.needs-setup svg{ animation:none; filt
     <div class="set-tools">
       <label class="set-btn" title="Show a CSV / XLSX / JSON file instead of the sheet">📂 Load file<input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json"/></label>
       <button type="button" id="checkAllBtn" class="set-btn" title="Flags dead links, videos and broken images">🔗 Check links</button>
+      <button type="button" id="exportJsonBtn" class="set-btn" title="Download all cards as JSON (can be loaded back with Load file)">⬇️ JSON</button>
+      <button type="button" id="exportCsvBtn" class="set-btn" title="Download all cards as CSV (can be loaded back with Load file)">⬇️ CSV</button>
       <a id="bmLink" href="#" draggable="true" class="bm-link set-bm" title="Drag to the bookmarks bar, then click it on any page">➕ Zi_LINK Add</a>
     </div>
     <div id="checkReport" class="set-hint"></div>
+    <div class="set-hint set-bm" style="padding:0;margin-top:6px">Shortcuts: / search · N add · F filter · S stats · R reload · Esc close</div>
     <div class="modal-msg" id="setMsg"></div>
     <div class="modal-actions">
       <div style="display:flex;gap:8px">
@@ -1352,15 +1372,105 @@ let page = 1;
 let filteredCache = [];
 let loadingMore = false;
 
+// ====== حفظ الترتيب والفلاتر بين الجلسات (البحث النصي مش بيتحفظ) ======
+const VIEW_KEY = "ziLinkView";
+// الترتيب الافتراضي (من الإعدادات): desc = الأحدث أولاً، asc = الأقدم أولاً — بيتطبق أول مرة وبعد Reset
+const DEFAULT_ORDER_KEY = "ziLinkDefaultOrder";
+function getDefaultOrder(){
+  try{ const v = localStorage.getItem(DEFAULT_ORDER_KEY); if(v === "asc" || v === "desc") return v; }catch{}
+  return "desc";
+}
+orderSelectEl.value = getDefaultOrder();
+let viewRestore = null;   // بيفضل موجود لحد أول populateFilters، وبعدها بيتصفّر
+try{ viewRestore = JSON.parse(localStorage.getItem(VIEW_KEY) || "null"); }catch{ viewRestore = null; }
+if(viewRestore && typeof viewRestore === "object"){
+  if([...sortSelectEl.options].some(o=>o.value===viewRestore.sort)) sortSelectEl.value = viewRestore.sort;
+  if([...orderSelectEl.options].some(o=>o.value===viewRestore.order)) orderSelectEl.value = viewRestore.order;
+  document.querySelectorAll("#flagsCheckboxes input").forEach(cb=>{ cb.checked = (viewRestore.flags||[]).includes(cb.value); });
+} else viewRestore = null;
+function saveView(){
+  if(viewRestore) return; // لسه الفلاتر الديناميك (Rate/Type/Tags) ماتبنتش، متكتبش فوق المحفوظ
+  try{
+    const chk = id => [...document.querySelectorAll(`#${id} input:checked`)].map(i=>i.value);
+    localStorage.setItem(VIEW_KEY, JSON.stringify({
+      sort: sortSelectEl.value, order: orderSelectEl.value,
+      rate: chk("rateCheckboxes"), type: chk("typeCheckboxes"), flags: chk("flagsCheckboxes"),
+      tags: [...chk("tagCheckboxes"), ...chk("starCheckboxes")]
+    }));
+  }catch{}
+}
+
 function setStatus(msg, show=true){ statusEl.textContent=msg; statusEl.className="status"+(show?" show":""); }
 
 // on phones the grid is limited to 1 or 2 columns (more makes the cards too narrow)
 const mobileMQ = window.matchMedia("(max-width:700px)");
 const effCols = () => { const v = parseInt(colsSelectEl.value, 10) || 2; return mobileMQ.matches ? Math.min(v, 2) : v; };
+// ====== Masonry layout ======
+// كل كارت بيتحط في أقصر عمود (فمفيش فراغات)، والترتيب بيفضل مقروء تقريبًا من الشمال لليمين.
+// بنستخدم position:absolute بدل ما ننقل الكروت بين أعمدة DOM، عشان الـ iframe (الفيديو) ميتعملوش ريلود.
+const masonry = { cols: 2 };
+// طريقة العرض: grid (شبكة) / masonry (مجازين) / list (أسامي في أعمدة) — بتتغيّر من الإعدادات
+const VIEW_MODE_KEY = "ziLinkViewMode";
+const VIEW_MODES = ["grid", "masonry", "list"];
+let viewMode = "masonry";
+try{ const vm = localStorage.getItem(VIEW_MODE_KEY); if(VIEW_MODES.includes(vm)) viewMode = vm; }catch{}
+function layoutMasonry(){
+  if(viewMode !== "masonry") return;
+  const cards = gridEl.children, n = cards.length;
+  if(!n){ gridEl.style.height = "0px"; return; }
+  const w = gridEl.clientWidth;
+  if(!w) return;
+  const gap = parseFloat(getComputedStyle(gridEl).getPropertyValue("--gap")) || 12;
+  const cols = Math.max(1, masonry.cols);
+  const colW = Math.floor(((w - gap*(cols-1)) / cols) * 100) / 100;
+
+  // 1) العرض الأول (بيغيّر الارتفاع) 2) قراءة الارتفاعات مرة واحدة 3) كتابة المواضع
+  for(let i=0;i<n;i++){
+    const c = cards[i];
+    if(c._mw !== colW){ c.style.width = colW + "px"; c._mw = colW; }
+  }
+  const hs = new Array(n);
+  for(let i=0;i<n;i++) hs[i] = cards[i].offsetHeight;
+
+  const colH = new Array(cols).fill(0);
+  for(let i=0;i<n;i++){
+    let k = 0;
+    for(let j=1;j<cols;j++) if(colH[j] < colH[k]) k = j;
+    const x = Math.round(k * (colW + gap) * 100) / 100, y = colH[k];
+    const c = cards[i];
+    if(c._mx !== x){ c.style.left = x + "px"; c._mx = x; }
+    if(c._my !== y){ c.style.top = y + "px"; c._my = y; }
+    colH[k] += hs[i] + gap;
+  }
+  gridEl.style.height = Math.max(0, Math.max(...colH) - gap) + "px";
+}
+let masonryRaf = 0;
+function scheduleMasonry(){
+  if(masonryRaf) return;
+  masonryRaf = requestAnimationFrame(()=>{ masonryRaf = 0; layoutMasonry(); });
+}
+// أي تغيير في ارتفاع كارت (تحميل صورة، صورة بايظة، تعديل) أو عرض الشبكة بيعيد التوزيع
+const masonryRO = new ResizeObserver(scheduleMasonry);
+masonryRO.observe(gridEl);
+new MutationObserver(muts=>{
+  muts.forEach(m=>{
+    m.addedNodes.forEach(nd=>{ if(nd.nodeType === 1) masonryRO.observe(nd); });
+    m.removedNodes.forEach(nd=>{ if(nd.nodeType === 1) masonryRO.unobserve(nd); });
+  });
+  layoutMasonry(); // فورًا، قبل أول رسم، عشان الكروت الجديدة ماتظهرش فوق بعض
+}).observe(gridEl, { childList: true });
+
 function updateGridCols(cols){
-  const screenWidth = window.innerWidth;
-  const colWidth = screenWidth / cols;
-  gridEl.style.gridTemplateColumns = `repeat(${cols}, minmax(0, ${colWidth}px))`;
+  masonry.cols = cols;
+  if(viewMode === "grid") gridEl.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+  else if(viewMode === "list") gridEl.style.columnCount = cols;
+  else layoutMasonry();
+}
+// بتظبط كلاس الشبكة حسب طريقة العرض وتمسح أي ستايل من الطريقة اللي قبلها
+function applyViewModeClass(){
+  VIEW_MODES.forEach(m => gridEl.classList.toggle("m-" + m, m === viewMode));
+  gridEl.style.height = ""; gridEl.style.gridTemplateColumns = ""; gridEl.style.columnCount = "";
+  updateGridCols(effCols());
 }
 const COLS_KEY = "ziLinkCols";
 try{ const sc = localStorage.getItem(COLS_KEY); if(sc && [...colsSelectEl.options].some(o=>o.text===sc)) colsSelectEl.value = sc; }catch{}
@@ -1376,7 +1486,42 @@ colsSelectEl.onchange = () => {
   try{ localStorage.setItem(COLS_KEY, colsSelectEl.value); }catch{}
 };
 window.onresize = () => { updateGridCols(effCols()); syncColsSeg(); };
-updateGridCols(effCols()); syncColsSeg();
+applyViewModeClass(); syncColsSeg();
+
+// ====== Settings: View (Grid / Masonry / List) و Order (الأحدث أولاً / الأقدم أولاً) — بيتطبقوا فورًا ======
+const viewSegEl = document.getElementById("viewSeg"), orderSegEl = document.getElementById("orderSeg");
+const VIEW_LABELS = { grid:"Grid", masonry:"Masonry", list:"List" };
+const VIEW_TIPS = { grid:"Equal-height rows", masonry:"Cards fill the gaps (Pinterest-style)", list:"Names only, in columns like Windows Explorer's List view" };
+VIEW_MODES.forEach(m=>{
+  const b = document.createElement("button"); b.type = "button"; b.textContent = VIEW_LABELS[m]; b.title = VIEW_TIPS[m]; b.dataset.v = m;
+  b.onclick = () => setViewMode(m);
+  viewSegEl.appendChild(b);
+});
+[["desc","Newest first","Descend: newest at the top"],["asc","Oldest first","Ascend: oldest at the top"]].forEach(([v,label,tip])=>{
+  const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.title = tip; b.dataset.v = v;
+  b.onclick = () => setDefaultOrder(v);
+  orderSegEl.appendChild(b);
+});
+function syncViewSegs(){
+  [...viewSegEl.children].forEach(b=>b.classList.toggle("on", b.dataset.v === viewMode));
+  [...orderSegEl.children].forEach(b=>b.classList.toggle("on", b.dataset.v === getDefaultOrder()));
+}
+function setViewMode(m){
+  if(!VIEW_MODES.includes(m) || m === viewMode) return;
+  viewMode = m;
+  try{ localStorage.setItem(VIEW_MODE_KEY, m); }catch{}
+  applyViewModeClass();
+  syncViewSegs();
+  page = 1;
+  renderPartial(filteredCache); // الكروت بتتبني من جديد لأن شكل الكارت بيختلف في List
+}
+function setDefaultOrder(v){
+  try{ localStorage.setItem(DEFAULT_ORDER_KEY, v); }catch{}
+  orderSelectEl.value = v;
+  syncViewSegs();
+  applyFilters();
+}
+syncViewSegs();
 
 function toEmbedUrl(url){
   if(!url) return "";
@@ -1659,9 +1804,10 @@ function populateFilters(){
   // عشان أي فلتر شغال ميتفكّش بسبب تعديل كارت أو إضافة واحد جديد
   const keepChecked = (containerId) =>
     new Set([...document.querySelectorAll(`#${containerId} input:checked`)].map(i=>i.value.toLowerCase()));
-  const checkedRates = keepChecked("rateCheckboxes");
-  const checkedTypes = keepChecked("typeCheckboxes");
-  const checkedTags   = new Set([...keepChecked("tagCheckboxes"), ...keepChecked("starCheckboxes")]);
+  const fromView = k => (viewRestore && Array.isArray(viewRestore[k]) ? viewRestore[k] : []).map(v=>String(v).toLowerCase());
+  const checkedRates = new Set([...keepChecked("rateCheckboxes"), ...fromView("rate")]);
+  const checkedTypes = new Set([...keepChecked("typeCheckboxes"), ...fromView("type")]);
+  const checkedTags   = new Set([...keepChecked("tagCheckboxes"), ...keepChecked("starCheckboxes"), ...fromView("tags")]);
 
   const rates=uniqueCI(items.flatMap(i=>splitValues(i.rate)));
   const types=uniqueCI(items.flatMap(i=>splitValues(i.type)));
@@ -1731,6 +1877,7 @@ function populateFilters(){
   document.querySelectorAll("#flagsCheckboxes .flag-count").forEach(span=>{
     span.textContent = `(${flagCounts[span.dataset.flag] || 0})`;
   });
+  viewRestore = null; // الاستعادة خلصت، من هنا الفلاتر بتتحفظ عادي
 }
 
 // بيبني بديل بصري لكارت مالوش صورة أصلاً (ولا فيديو)، مع زرار بيفتح بوباب
@@ -1771,7 +1918,28 @@ function buildBrokenImagePlaceholder(it){
 
 // بتبني كارت واحد بس (DOM element) من غير ما تلمس الشبكة كلها —
 // مستخدمة في render() للرسم الكامل، وفي applyLocally() لتحديث كارت واحد بعد التعديل
+// صف واحد في عرض List: أيقونة + اسم (لينك) + قلم التعديل بس
+function buildListRow(it){
+  const row=document.createElement("div");
+  row.className="card lrow";
+  row.dataset.row = it.row!=null ? String(it.row) : "";
+  const ico=document.createElement("span");
+  ico.className="l-ico";
+  ico.textContent = it.vid ? "🎥" : "🔗";
+  const name = it.title || "Untitled";
+  const t=document.createElement("a");
+  Object.assign(t,{className:"title",href:it.link||"#",target:"_blank",rel:"noopener noreferrer",textContent:name,title:name});
+  const lk = it.link ? normalizeLink(it.link) : "";
+  if(lk && linkStatusCache[lk]?.status==="dead") t.classList.add("title-dead-link");
+  const ed=document.createElement("a");
+  Object.assign(ed,{href:"#",className:"edit-link",title:"Edit",textContent:"✏️"});
+  ed.addEventListener("click",(e)=>{ e.preventDefault(); e.stopPropagation(); openEditModal(it); });
+  row.append(ico,t,ed);
+  return row;
+}
+
 function buildCard(it){
+    if(viewMode==="list") return buildListRow(it);
     const card=document.createElement(it.link?"a":"div");
     if(it.link) Object.assign(card,{href:it.link,target:"_blank",rel:"noopener noreferrer"});
     card.className="card";
@@ -2015,6 +2183,7 @@ Object.assign(yandexLink,{
     return card;
 }
 
+let renderedCount = 0; // عدد الكروت الظاهرة حاليًا في الشبكة
 function render(list){
   gridEl.innerHTML="";
   const fragment=document.createDocumentFragment();
@@ -2022,11 +2191,23 @@ function render(list){
     fragment.appendChild(buildCard(it));
   });
   gridEl.appendChild(fragment);
+  renderedCount = list.length;
   setStatus("",false);
 }
 
+// السكرول: بيضيف الدفعة الجديدة بس في آخر الشبكة، من غير ما يمسح أو يعيد بناء الكروت الموجودة
+function appendMore(list){
+  const end = Math.min(page * CONFIG.PAGE_SIZE, list.length);
+  if(end <= renderedCount) return;
+  const fragment=document.createDocumentFragment();
+  for(let i=renderedCount;i<end;i++) fragment.appendChild(buildCard(list[i]));
+  gridEl.appendChild(fragment);
+  renderedCount = end;
+}
+
 function renderPartial(list){
-  const end = page * CONFIG.PAGE_SIZE;
+  // عرض List خفيف (أسامي بس)، فبيتعرض كله مرة واحدة، من غير ما الأعمدة تتحرك مع السكرول
+  const end = viewMode==="list" ? list.length : page * CONFIG.PAGE_SIZE;
   render(list.slice(0, end));
   const countEl = document.getElementById("count");
   if(countEl) countEl.textContent = list.length;
@@ -2241,12 +2422,15 @@ if (statsMultiSpecs && statsMultiSpecs.length)
     filtered.sort((a,b)=>(a.rate||"").localeCompare(b.rate||"",undefined,{numeric:true,sensitivity:"base"}));
   else if(sortSelectEl.value==="type")
     filtered.sort((a,b)=>(a.type||"").localeCompare(b.type||"",undefined,{numeric:true,sensitivity:"base"}));
+  else if(sortSelectEl.value==="added")
+    filtered.sort((a,b)=>(Number(a.row)||0)-(Number(b.row)||0)); // asc = الأقدم أولاً، desc = الأحدث أولاً
   else if(sortSelectEl.value==="random")
     filtered.sort(()=>Math.random()-0.5);
 
   if(orderSelectEl.value==="desc") filtered.reverse();
 
   filteredCache = filtered;
+  saveView();
   renderPartial(filteredCache);
 }
 
@@ -2580,7 +2764,7 @@ document.getElementById("resetAllBtn").onclick = () => {
   document.body.classList.remove("search-open");
   searchEl.value = "";
   sortSelectEl.value = "none";
-  orderSelectEl.value = "asc";
+  orderSelectEl.value = getDefaultOrder();
   document.querySelectorAll("#rateCheckboxes input, #typeCheckboxes input, #flagsCheckboxes input, #tagCheckboxes input, #starCheckboxes input")
     .forEach(cb=> cb.checked = false);
   statsNoRateOnly = false;
@@ -2845,13 +3029,29 @@ document.getElementById("fileInput").addEventListener("change", async function(e
   }
 });
 
+// CSV parser بيدعم الاقتباس "..." والفواصل جوه الخلية (عشان Type زي "a, b" يرجع سليم بعد الـ Export)
 function parseCSV(text){
-  const lines = text.split(/\r?\n/).filter(l=>l.trim());
-  const headers = lines.shift().split(",").map(h=>h.trim().toLowerCase());
-  return lines.map(line=>{
-    const values = line.split(",");
+  text = String(text||"").replace(/^﻿/, "");
+  const rows = []; let row = [], cur = "", q = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else if(ch === '"') q = true;
+    else if(ch === ","){ row.push(cur); cur = ""; }
+    else if(ch === "\n" || ch === "\r"){
+      if(ch === "\r" && text[i+1] === "\n") i++;
+      row.push(cur); cur = ""; rows.push(row); row = [];
+    } else cur += ch;
+  }
+  if(cur !== "" || row.length){ row.push(cur); rows.push(row); }
+  const data = rows.filter(r=>r.some(c=>c.trim()));
+  if(!data.length) return [];
+  const headers = data.shift().map(h=>h.trim().toLowerCase());
+  return data.map(vals=>{
     const obj = {};
-    headers.forEach((h,i)=>obj[h]=values[i]?.trim());
+    headers.forEach((h,i)=>obj[h]=(vals[i]||"").trim());
     return obj;
   }).filter(x=>x.image||x.title||x.link||x.vid);
 }
@@ -3055,10 +3255,11 @@ document.getElementById("checkAllBtn").onclick = () => checkAllHealth(false);
 
 window.addEventListener("scroll", () => {
   if(loadingMore) return;
+  if(renderedCount >= filteredCache.length) return; // كله ظاهر، مفيش حاجة تتحمّل
   if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 300){
     loadingMore = true;
     page++;
-    renderPartial(filteredCache);
+    appendMore(filteredCache);
     setTimeout(()=>loadingMore=false, 200);
   }
 });
@@ -3381,6 +3582,57 @@ document.getElementById("pasteLinkBtn").onclick = async () => {
     }).catch(() => {});
   }
 };
+
+// ====== Export (JSON / CSV) — نفس الأعمدة اللي بيقراها Load file ======
+const EXPORT_FIELDS = ["row","title","link","image","vid","type","rate","note"];
+function downloadFile(name, text, mime){
+  const url = URL.createObjectURL(new Blob([text], {type:mime}));
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function exportData(kind){
+  if(!items.length){ setMsg("Nothing to export yet.", true); return; }
+  const day = new Date().toISOString().slice(0,10);
+  const rows = items.map(it=>{ const o = {}; EXPORT_FIELDS.forEach(f=>{ o[f] = it[f]==null ? "" : String(it[f]); }); return o; });
+  if(kind === "json"){
+    downloadFile(`zi_link_${day}.json`, JSON.stringify(rows, null, 2), "application/json");
+  } else {
+    const esc = v => `"${v.replace(/"/g, '""')}"`;
+    const csv = [EXPORT_FIELDS.join(","), ...rows.map(o=>EXPORT_FIELDS.map(f=>esc(o[f])).join(","))].join("\r\n");
+    downloadFile(`zi_link_${day}.csv`, "﻿" + csv, "text/csv;charset=utf-8");
+  }
+  setMsg(`Exported ${rows.length} card(s) ✅`, false);
+}
+document.getElementById("exportJsonBtn").onclick = () => exportData("json");
+document.getElementById("exportCsvBtn").onclick = () => exportData("csv");
+
+// ====== Keyboard shortcuts (e.code عشان تشتغل مع الكيبورد العربي كمان) ======
+document.addEventListener("keydown", e=>{
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const openModal = document.querySelector(".modal-overlay.show");
+  const t = e.target;
+  const typing = !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+  if(e.key === "Escape"){
+    if(openModal){
+      // نافذة Add/Edit مش بتتقفل بـ Esc عشان ما يضيعش اللي اتكتب
+      const closers = { filterOverlay:"filterCancelBtn", statsOverlay:"statsCloseBtn", settingsOverlay:"setCancelBtn" };
+      const id = closers[openModal.id];
+      if(id) document.getElementById(id).click();
+    } else if(document.activeElement === searchEl){
+      searchEl.blur();
+      document.body.classList.remove("search-open");
+    }
+    return;
+  }
+  if(typing || openModal || e.shiftKey) return;
+  const act = { Slash:"search", KeyN:"addCardBtn", KeyF:"filterBtn", KeyS:"statsBtn", KeyR:"reloadBtn" }[e.code];
+  if(!act) return;
+  e.preventDefault();
+  if(act === "search"){ document.body.classList.add("search-open"); searchEl.focus(); searchEl.select(); }
+  else document.getElementById(act).click();
+});
 
 // ====== Service worker ======
 if("serviceWorker" in navigator){
